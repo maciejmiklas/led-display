@@ -17,27 +17,78 @@
 #define REG_DISPLAYTEST  0xF
 
 Display::Display(uint8_t xKits, uint8_t yKits, uint8_t **ss) {
-
 	this->xKits = xKits;
 	this->yKits = yKits;
-
-	// assign varargs to #ss
 	this->ss = ss;
+
+	// initialize screen buffer
+	this->sbuf = new uint8_t*[xKits];
+	for (int x = 0; x < xKits; x++) {
+		this->sbuf[x] = new uint8_t[yKits];
+		memset(this->sbuf[x], 0x00, sizeof(this->sbuf[x]));
+	}
+
+#if DEBUG
+	debug("Created display with %dx%d LED-Kits", xKits, yKits);
+#endif
 }
 
 void Display::setup() {
+	setupSpi();
+	setupMax();
+}
+
+void Display::setupSpi() {
 	SPI.begin();
 	SPI.setDataMode(SPI_MODE3);
 	SPI.setClockDivider(SPI_CLOCK_DIV128);
+}
 
-	for (uint8_t ssX = 0; ssX < xKits; ssX++) {
-		for (uint8_t ssY = 0; ssY < xKits; ssY++) {
+void Display::setupMax() {
+	for (uint8_t ssY = 0; ssY < yKits; ssY++) {
+		for (uint8_t ssX = 0; ssX < xKits; ssX++) {
 			setupMax(ss[ssX][ssY]);
 		}
 	}
 }
 
+void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **pixels) {
+#if DEBUG
+	debug("Print (%d,%d) with [%dx%d]", x, y, width, height);
+#endif
+
+	// find starting 8x8-Matrix
+	uint8_t sKitX = x / M_DIM;
+	uint8_t sKitY = y / M_DIM;
+
+	for (uint8_t yKit = sKitY; yKit < yKits; yKit++) {
+		for (uint8_t xKit = sKitX; xKit < xKits; xKit++) {
+
+			// calculate starting x,y position within current kit
+			uint8_t xOnKit = 0;
+			uint8_t yOnKit = 0;
+			if (xKit == sKitX && yKit == sKitY) {
+				xOnKit = x - (sKitX * M_DIM);
+				yOnKit = y - (sKitY * M_DIM);
+#if DEBUG
+				debug("Starting pixel (%d,%d) on kit (%d,%d)", xOnKit, yOnKit, sKitX, sKitY);
+#endif
+			}
+		}
+	}
+}
+
+void printKit(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t *pixels) {
+#if DEBUG
+	debug("Print on Kit (%d,%d) with [%dx%d]", x, y, width, height);
+#endif
+}
+
 void Display::setupMax(uint8_t ss) {
+#if DEBUG
+	debug("Configuring MAX7219 on SS: %d", ss);
+#endif
+
 	pinMode(ss, OUTPUT);
 
 	// disable shutdown mode
