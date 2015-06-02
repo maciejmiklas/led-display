@@ -70,7 +70,8 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 	height = min(height, (endKitY - startKitY + 1) * M_DIM - y % M_DIM);
 
 #if DEBUG
-	debug("Using kits: k[%d,%d] - k[%d,%d] with pixel w/h: %dx%d", startKitX, startKitY, endKitX, endKitY, width, height);
+	debug("Using kits: k[%d,%d] - k[%d,%d] with pixel w/h: %dx%d", startKitX, startKitY, endKitX, endKitY, width,
+			height);
 #endif
 
 	for (uint8_t yKit = startKitY; yKit <= endKitY; yKit++) {
@@ -130,10 +131,10 @@ void Display::setupMax(uint8_t ss) {
 
 	pinMode(ss, OUTPUT);
 
-// disable shutdown mode
+	// disable shutdown mode
 	send(ss, REG_SHUTDOWN, 1);
 
-// display test
+	// display test
 	send(ss, REG_DISPLAYTEST, 0);
 
 	send(ss, REG_INTENSITY, 15);  // character intensity: range: 0 to 15
