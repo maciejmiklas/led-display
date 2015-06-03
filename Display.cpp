@@ -52,6 +52,33 @@ void Display::setupMax() {
 	}
 }
 
+/** reduce width/height so it fits on the screen */
+inline uint8_t Display::calcSize(uint8_t xy, uint8_t wh, uint8_t startKitXY, uint8_t endKitXY) {
+	return min(wh, (endKitXY - startKitXY + 1) * M_DIM - xy % M_DIM);
+}
+
+/** find ending 8x8-Matrix - inclusive */
+inline uint8_t Display::calcEndKit(uint8_t xy, uint8_t wh, uint8_t yxKits) {
+	return min(((xy + wh - 1) / M_DIM), yxKits - 1);
+}
+
+/** calculate width/height within current kit */
+inline uint8_t Display::calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uint8_t xyOnKit, uint8_t startKitXY,
+		uint8_t endKitXY) {
+	uint8_t widthOnKit = 0;
+	if (xyKit == startKitXY) {
+		widthOnKit = min(wh, M_DIM - xyOnKit);
+	} else if (xyKit == endKitXY) {
+		widthOnKit = (xy + wh) % M_DIM;
+	}
+	// happens for xKit == endKitX and all pixels on (0xFF) - in this case % gives 0
+	if (widthOnKit == 0) {
+		widthOnKit = M_DIM;
+	}
+
+	return widthOnKit;
+}
+
 void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **pixels) {
 #if DEBUG
 	debug("Print pixels: p[%d,%d] -> %dx%d", x, y, width, height);
@@ -61,67 +88,42 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 	uint8_t startKitX = x / M_DIM;
 	uint8_t startKitY = y / M_DIM;
 
-	// find ending 8x8-Matrix - exclusive
-	uint8_t endKitX = min(((x + width - 1) / M_DIM), xKits - 1);
-	uint8_t endKitY = min(((y + height - 1) / M_DIM), yKits - 1);
+	uint8_t endKitX = calcEndKit(x, width, xKits);
+	uint8_t endKitY = calcEndKit(y, height, yKits);
 
-	// reduce width/height so it fits on the screen
-	width = min(width, (endKitX - startKitX + 1) * M_DIM - x % M_DIM);
-	height = min(height, (endKitY - startKitY + 1) * M_DIM - y % M_DIM);
+	width = calcSize(x, width, startKitX, endKitX);
+	height = calcSize(y, height, startKitY, endKitY);
 
 #if DEBUG
 	debug("Using kits: k[%d,%d] - k[%d,%d] with pixel w/h: %dx%d", startKitX, startKitY, endKitX, endKitY, width,
 			height);
 #endif
 
+	uint8_t xPixels = 0;
+	uint8_t yPixels = 0;
 	for (uint8_t yKit = startKitY; yKit <= endKitY; yKit++) {
+		uint8_t yOnKit = yKit == startKitY ? y - (startKitY * M_DIM) : 0;
+		uint8_t heightOnKit = calcSizeOnKit(y, height, yKit, yOnKit, startKitY, endKitY);
+		//TODO use heightOnKit to limit height
+		xPixels = 0;
 		for (uint8_t xKit = startKitX; xKit <= endKitX; xKit++) {
-
-			// calculate starting (x,y) position within current kit
-			uint8_t xOnKit;
-			uint8_t yOnKit;
-			if (xKit == startKitX && yKit == startKitY) {
-				xOnKit = x - (startKitX * M_DIM);
-				yOnKit = y - (startKitY * M_DIM);
-			} else {
-				xOnKit = 0;
-				yOnKit = 0;
-			}
-
-			// calculate width within current kit
-			uint8_t widthOnKit = 0;
-			if (xKit == startKitX) {
-				widthOnKit = min(width, M_DIM - xOnKit);
-			} else if (xKit == endKitX) {
-				widthOnKit = (x + width) % M_DIM;
-			}
-			// happens for xKit == endKitX and all pixels on (0xFF) - in this case module gives 0
-			if (widthOnKit == 0) {
-				widthOnKit = M_DIM;
-			}
-
-			// calculate height within current kit
-			uint8_t heightOnKit = 0;
-			if (yKit == startKitY) {
-				heightOnKit = min(height, M_DIM - yOnKit);
-			} else if (yKit == endKitY) {
-				heightOnKit = (y + height) % M_DIM;
-			}
-			if (heightOnKit == 0) {
-				heightOnKit = M_DIM;
-			}
-
+			uint8_t xOnKit = xKit == startKitX ? x - (startKitX * M_DIM) : 0;
+			uint8_t widthOnKit = calcSizeOnKit(x, width, xKit, xOnKit, startKitX, endKitX);
+			uint8_t data = pixels[xPixels][yPixels];
+			uint8_t ssKit = ss[xKit][yKit];
 #if DEBUG
-			debug("Print on kit: k[%d,%d], p[%d,%d] -> %dx%d", xKit, yKit, xOnKit, yOnKit, widthOnKit, heightOnKit);
+			debug("Print on kit: k[%d,%d], p[%d,%d] -> %dx%d, SS: %d, data: 0x%02x ", xKit, yKit, xOnKit, yOnKit,
+					widthOnKit, heightOnKit, ssKit, data);
 #endif
+			//printlnOnKit(xOnKit, yOnKit, widthOnKit, ssKit, data);
+			xPixels++;
 		}
+		yPixels++;
 	}
 }
 
-void printlnOnKit(uint8_t x, uint8_t y, uint8_t width, uint8_t line) {
-#if DEBUG
-	debug("Print on Kit [%d,%d], with: %d, line: 0x%02x", x, y, width, line);
-#endif
+inline void printlnOnKit(uint8_t x, uint8_t y, uint8_t width, uint8_t ssKit, uint8_t data) {
+
 }
 
 void Display::setupMax(uint8_t ss) {

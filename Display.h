@@ -33,7 +33,7 @@
  *
  * Pixels on Display consisting of 4x5 LED-Kits
  *
-       0        1        2       3
+ 0        1        2       3
  0 ........|........|........|........   (8,0)|(15,0)|(23,0)|(31,0)
  1 ........|........|........|........   (8,1)|(15,1)|(23,1)|(31,1)
  2 ........|........|........|........   (8,2)|(15,2)|(23,2)|(31,2)
@@ -88,6 +88,10 @@ private:
 	void setupSpi();
 	void send(uint8_t ss, uint8_t address, uint8_t value);
 	void clear(uint8_t ss);
+	inline uint8_t calcSize(uint8_t xy, uint8_t wh, uint8_t startKitXY, uint8_t endKitXY);
+	inline uint8_t calcEndKit(uint8_t xy, uint8_t wh, uint8_t yxKits);
+	inline uint8_t calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uint8_t xyOnKit, uint8_t startKitXY,
+			uint8_t endKitXY);
 };
 
 #endif /* DISPLAY_H_ */
