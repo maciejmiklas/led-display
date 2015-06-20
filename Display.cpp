@@ -53,13 +53,13 @@ void Display::setupMax() {
 }
 
 /** reduce width/height so it fits on the screen */
-inline uint8_t Display::calcSize(uint8_t xy, uint8_t wh, uint8_t startKitXY, uint8_t endKitXY) {
-	return min(wh, (endKitXY - startKitXY + 1) * M_DIM - xy % M_DIM);
+inline uint8_t Display::limitSize(uint8_t xy, uint8_t wh, uint8_t startKitXY, uint8_t endKitXY) {
+	return min(wh, (endKitXY - startKitXY + 1) * KIT_DIM - xy % KIT_DIM);
 }
 
 /** find ending 8x8-Matrix - inclusive */
 inline uint8_t Display::calcEndKit(uint8_t xy, uint8_t wh, uint8_t yxKits) {
-	return min(((xy + wh - 1) / M_DIM), yxKits - 1);
+	return min(((xy + wh - 1) / KIT_DIM), yxKits - 1);
 }
 
 /** calculate width/height within current kit */
@@ -67,63 +67,104 @@ inline uint8_t Display::calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uin
 		uint8_t endKitXY) {
 	uint8_t widthOnKit = 0;
 	if (xyKit == startKitXY) {
-		widthOnKit = min(wh, M_DIM - xyOnKit);
+		widthOnKit = min(wh, KIT_DIM - xyOnKit);
+
 	} else if (xyKit == endKitXY) {
-		widthOnKit = (xy + wh) % M_DIM;
+		widthOnKit = (xy + wh) % KIT_DIM;
 	}
-	// happens for xKit == endKitX and all pixels on (0xFF) - in this case % gives 0
+	// happens for xKit == endKitX and all pixels enabled (data byte = 0xFF) - in this case % gives 0
 	if (widthOnKit == 0) {
-		widthOnKit = M_DIM;
+		widthOnKit = KIT_DIM;
 	}
 
 	return widthOnKit;
 }
 
-void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **pixels) {
+void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **data) {
 #if DEBUG
 	debug("Print pixels: p[%d,%d] -> %dx%d", x, y, width, height);
 #endif
 
 	// find starting 8x8-Matrix, begins with 0
-	uint8_t startKitX = x / M_DIM;
-	uint8_t startKitY = y / M_DIM;
+	uint8_t startKitX = x / KIT_DIM;
+	uint8_t startKitY = y / KIT_DIM;
 
 	uint8_t endKitX = calcEndKit(x, width, xKits);
 	uint8_t endKitY = calcEndKit(y, height, yKits);
 
-	width = calcSize(x, width, startKitX, endKitX);
-	height = calcSize(y, height, startKitY, endKitY);
+	width = limitSize(x, width, startKitX, endKitX);
+	height = limitSize(y, height, startKitY, endKitY);
 
 #if DEBUG
 	debug("Using kits: k[%d,%d] - k[%d,%d] with pixel w/h: %dx%d", startKitX, startKitY, endKitX, endKitY, width,
 			height);
 #endif
+	KitData *kd = (KitData*) malloc(sizeof(KitData));
+	kd->xRelKit = 0;
+	kd->yRelKit = 0;
 
-	uint8_t xPixels = 0;
-	uint8_t yPixels = 0;
-	for (uint8_t yKit = startKitY; yKit <= endKitY; yKit++) {
-		uint8_t yOnKit = yKit == startKitY ? y - (startKitY * M_DIM) : 0;
-		uint8_t heightOnKit = calcSizeOnKit(y, height, yKit, yOnKit, startKitY, endKitY);
-		//TODO use heightOnKit to limit height
-		xPixels = 0;
-		for (uint8_t xKit = startKitX; xKit <= endKitX; xKit++) {
-			uint8_t xOnKit = xKit == startKitX ? x - (startKitX * M_DIM) : 0;
-			uint8_t widthOnKit = calcSizeOnKit(x, width, xKit, xOnKit, startKitX, endKitX);
-			uint8_t data = pixels[xPixels][yPixels];
-			uint8_t ssKit = ss[xKit][yKit];
-#if DEBUG
-			debug("Print on kit: k[%d,%d], p[%d,%d] -> %dx%d, SS: %d, data: 0x%02x ", xKit, yKit, xOnKit, yOnKit,
-					widthOnKit, heightOnKit, ssKit, data);
-#endif
-			//printlnOnKit(xOnKit, yOnKit, widthOnKit, ssKit, data);
-			xPixels++;
+	for (kd->yKit = startKitY; kd->yKit <= endKitY; kd->yKit++) {
+		if (kd->yKit == startKitY) {
+			kd->yOnFirstKit = kd->yOnKit = y - (startKitY * KIT_DIM);
+		} else {
+			kd->yOnKit = 0;
 		}
-		yPixels++;
+		kd->heightOnKit = calcSizeOnKit(y, height, kd->yKit, kd->yOnKit, startKitY, endKitY);
+
+		for (kd->xKit = startKitX; kd->xKit <= endKitX; kd->xKit++) {
+			if (kd->xKit == startKitX) {
+				kd->xOnFirstKit = kd->xOnKit = x - (startKitX * KIT_DIM);
+			} else {
+				kd->xOnKit = 0;
+			}
+			kd->widthOnKit = calcSizeOnKit(x, width, kd->xKit, kd->xOnKit, startKitX, endKitX);
+
+			printOnKit(kd, data);
+			kd->xRelKit++;
+		}
+		kd->yRelKit++;
+	}
+	free(kd);
+}
+
+inline void Display::printOnKit(KitData *kd, uint8_t **data) {
+	uint8_t ssKit = ss[kd->xKit][kd->yKit];
+#if DEBUG
+	debug("Print on kit(%d): k[%d,%d], p[%d,%d] -> %dx%d", ssKit, kd->xKit, kd->yKit, kd->xOnKit, kd->yOnKit,
+			kd->widthOnKit, kd->heightOnKit);
+#endif
+
+	uint8_t yData = kd->yRelKit == 0 ? 0 : (KIT_DIM - kd->yOnFirstKit);
+	if (kd->yRelKit >= 2) {
+		yData += (KIT_DIM * kd->yRelKit);
+	}
+	for (uint8_t yOnKit = kd->yOnKit; yOnKit < KIT_DIM; yOnKit++) {
+		// vertical position of data is not shifted relatively to first kit
+		if (kd->xOnFirstKit == 0) {
+			uint8_t xData = 0;
+			uint8_t rowData = data[xData][yData];
+
+		} else {
+			// x-data position on first kit is shifted, so we need two bytes of data to cover single row on one LED-Kit
+			uint8_t xDataLeft = 0;
+			uint8_t xDataRight = 0;
+
+			// on the first and last kit we have only one byte
+			if (isEageKitOnX(kd)) {
+				uint8_t xData = 0;
+			} else {
+				uint8_t rowDataLeft = data[xDataLeft][yData];
+				uint8_t rowDataRight = data[xDataRight][yData];
+			}
+		}
+
+		yData++;
 	}
 }
 
-inline void printlnOnKit(uint8_t x, uint8_t y, uint8_t width, uint8_t ssKit, uint8_t data) {
-
+/** Return true whether we are on first or last kit */
+inline boolean Display::isEageKitOnX(KitData *kd) {
+	return kd->xRelKit == 0 || kd->widthOnKit != KIT_DIM;
 }
 
 void Display::setupMax(uint8_t ss) {
@@ -158,15 +199,15 @@ void Display::clear(uint8_t ss) {
 /* Transfers data to a MAX7219. */
 void Display::send(uint8_t ss, uint8_t address, uint8_t data) {
 
-// Ensure LOAD/CS is LOW
+	// Ensure LOAD/CS is LOW
 	digitalWrite(ss, LOW);
 
-// Send the register address
+	// Send the register address
 	SPI.transfer(address);
 
-// Send the value
+	// Send the value
 	SPI.transfer(data);
 
-// Tell chip to load in data
+	// Tell chip to load in data
 	digitalWrite(ss, HIGH);
 }

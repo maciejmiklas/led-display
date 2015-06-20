@@ -7,8 +7,12 @@
 
 #define DEBUG true
 
-/** Dimension of LED Matrix */
-#define M_DIM 8
+/**
+ * Dimension in pixels (LEDs) of LED-Matrix-Kit.
+ * Currently #KIT_DIM is limited to 8, because pixel data is stored in byte array and we are assuming,
+ * that one byte call fully cover one row on single LED-Kit.
+ */
+#define KIT_DIM 8
 
 /**
  * Display consist of a matrix of 8x8-LED-Kits. For example putting 8x5 kits together will build
@@ -83,15 +87,41 @@ private:
 	/** Vertical amount of 8x8-Matrices */
 	uint8_t yKits;
 
+	typedef struct {
+		// all (x,y) coordinates starting from 0 and are inclusive.
+
+		// starting pixels on first LED-Kit
+		uint8_t xOnFirstKit;
+		uint8_t yOnFirstKit;
+
+		// (x,y) position starting from first Kit that we are panting on.
+		uint8_t xRelKit;
+		uint8_t yRelKit;
+
+		// (x,y) Kit position starting from first Kit in LED-Kit-Matrix.
+		int8_t xKit;
+		uint8_t yKit;
+
+		// (x,y) position on kit that we are painting on.
+		uint8_t xOnKit;
+		uint8_t yOnKit;
+
+		// dimensions on kit that we are painting on.
+		uint8_t widthOnKit;
+		uint8_t heightOnKit;
+	} KitData;
+
 	void setupMax();
 	void setupMax(uint8_t ss);
 	void setupSpi();
 	void send(uint8_t ss, uint8_t address, uint8_t value);
 	void clear(uint8_t ss);
-	inline uint8_t calcSize(uint8_t xy, uint8_t wh, uint8_t startKitXY, uint8_t endKitXY);
+	inline uint8_t limitSize(uint8_t xy, uint8_t wh, uint8_t startKitXY, uint8_t endKitXY);
 	inline uint8_t calcEndKit(uint8_t xy, uint8_t wh, uint8_t yxKits);
 	inline uint8_t calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uint8_t xyOnKit, uint8_t startKitXY,
 			uint8_t endKitXY);
+	inline void printOnKit(KitData *kd, uint8_t **data);
+	inline boolean isEageKitOnX(KitData *kd);
 };
 
 #endif /* DISPLAY_H_ */
