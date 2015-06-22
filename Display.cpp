@@ -92,8 +92,8 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 	uint8_t endKitX = calcEndKit(x, width, xKits);
 	uint8_t endKitY = calcEndKit(y, height, yKits);
 
-	uint8_t widthLim = limitSize(x, widthLim, startKitX, endKitX);
-	uint8_t heightLim = limitSize(y, heightLim, startKitY, endKitY);
+	uint8_t widthLim = limitSize(x, width, startKitX, endKitX);
+	uint8_t heightLim = limitSize(y, height, startKitY, endKitY);
 
 #if DEBUG
 	debug("Using kits: k[%d,%d] - k[%d,%d] with pixel w/h: %dx%d", startKitX, startKitY, endKitX, endKitY, widthLim,
