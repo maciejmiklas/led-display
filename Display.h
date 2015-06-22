@@ -55,15 +55,18 @@ public:
 	Display(uint8_t xKits, uint8_t yKits, uint8_t **ss);
 
 	/**
-	 * Prints given matrix on the display starting at pixel on (x,y) position.
+	 * Prints given matrix on the display starting at pixel on [x,y] position.
 	 * Matrix dimension in pixels is given by #width and #height. It can exceed display size, in this case it will
 	 * get trimmed. Matrix data is stored in two dimensional array of bytes, where single bit represents one pixel,
-	 * first position in array indicates x second y: pixels[x][y].
+	 * first position in array indicates x second y: data[x][y].
+	 *
+	 * Data array starts from 0 and given [x,y] is inclusive. #width and #height gives amount of pixels on x
+	 * and y axis. This gives us a rectangle with position: [x,y]-[#width-1,#height-1]
 	 *
 	 * For example, matrix consisting of 3x2 bytes has maximal dimension 24(3*8) on 16(2*8) pixels,
 	 * which gives us a 384 pixels in total.
 	 */
-	void print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **pixels);
+	void print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **data);
 
 	/** Initialized SPI and 8x8-Matrix elements. */
 	void setup();
@@ -88,27 +91,34 @@ private:
 	uint8_t yKits;
 
 	typedef struct {
-		// all (x,y) coordinates starting from 0 and are inclusive.
+		// all [x,y] coordinates starting from 0 and are inclusive.
 
-		// starting pixels on first LED-Kit
+		/** starting pixels on first LED-Kit */
 		uint8_t xOnFirstKit;
 		uint8_t yOnFirstKit;
 
-		// (x,y) position starting from first Kit that we are panting on.
+		/** [x,y] position starting from first Kit that we are panting on. */
 		uint8_t xRelKit;
 		uint8_t yRelKit;
 
-		// (x,y) Kit position starting from first Kit in LED-Kit-Matrix.
-		int8_t xKit;
+		/** [x,y] position starting from first Kit that we are panting on. */
+		uint8_t xRelKitSize;
+		uint8_t yRelKitSize;
+
+		/** [x,y] Kit position starting from first Kit in LED-Kit-Matrix. */
+		uint8_t xKit;
 		uint8_t yKit;
 
-		// (x,y) position on kit that we are painting on.
+		/** true if the data's width had to be limited in order to fit on the LED-Matrix. */
+		boolean xKitSizeLimited;
+
+		/** [x,y] position on kit that we are painting on. */
 		uint8_t xOnKit;
 		uint8_t yOnKit;
 
-		// dimensions on kit that we are painting on.
-		uint8_t widthOnKit;
-		uint8_t heightOnKit;
+		/** dimensions on kit that we are painting on. */
+		uint8_t xOnKitSize;
+		uint8_t yOnKitSize;
 	} KitData;
 
 	void setupMax();
@@ -121,7 +131,6 @@ private:
 	inline uint8_t calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uint8_t xyOnKit, uint8_t startKitXY,
 			uint8_t endKitXY);
 	inline void printOnKit(KitData *kd, uint8_t **data);
-	inline boolean isEageKitOnX(KitData *kd);
 };
 
 #endif /* DISPLAY_H_ */

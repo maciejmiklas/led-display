@@ -92,16 +92,19 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 	uint8_t endKitX = calcEndKit(x, width, xKits);
 	uint8_t endKitY = calcEndKit(y, height, yKits);
 
-	width = limitSize(x, width, startKitX, endKitX);
-	height = limitSize(y, height, startKitY, endKitY);
+	uint8_t widthLim = limitSize(x, widthLim, startKitX, endKitX);
+	uint8_t heightLim = limitSize(y, heightLim, startKitY, endKitY);
 
 #if DEBUG
-	debug("Using kits: k[%d,%d] - k[%d,%d] with pixel w/h: %dx%d", startKitX, startKitY, endKitX, endKitY, width,
-			height);
+	debug("Using kits: k[%d,%d] - k[%d,%d] with pixel w/h: %dx%d", startKitX, startKitY, endKitX, endKitY, widthLim,
+			heightLim);
 #endif
 	KitData *kd = (KitData*) malloc(sizeof(KitData));
 	kd->xRelKit = 0;
 	kd->yRelKit = 0;
+	kd->xRelKitSize = endKitX - startKitX;
+	kd->yRelKitSize = endKitY - startKitY;
+	kd->xKitSizeLimited = widthLim != width;
 
 	for (kd->yKit = startKitY; kd->yKit <= endKitY; kd->yKit++) {
 		if (kd->yKit == startKitY) {
@@ -109,7 +112,7 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 		} else {
 			kd->yOnKit = 0;
 		}
-		kd->heightOnKit = calcSizeOnKit(y, height, kd->yKit, kd->yOnKit, startKitY, endKitY);
+		kd->yOnKitSize = calcSizeOnKit(y, heightLim, kd->yKit, kd->yOnKit, startKitY, endKitY);
 
 		for (kd->xKit = startKitX; kd->xKit <= endKitX; kd->xKit++) {
 			if (kd->xKit == startKitX) {
@@ -117,7 +120,7 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 			} else {
 				kd->xOnKit = 0;
 			}
-			kd->widthOnKit = calcSizeOnKit(x, width, kd->xKit, kd->xOnKit, startKitX, endKitX);
+			kd->xOnKitSize = calcSizeOnKit(x, widthLim, kd->xKit, kd->xOnKit, startKitX, endKitX);
 
 			printOnKit(kd, data);
 			kd->xRelKit++;
@@ -130,41 +133,59 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 inline void Display::printOnKit(KitData *kd, uint8_t **data) {
 	uint8_t ssKit = ss[kd->xKit][kd->yKit];
 #if DEBUG
-	debug("Print on kit(%d): k[%d,%d], p[%d,%d] -> %dx%d", ssKit, kd->xKit, kd->yKit, kd->xOnKit, kd->yOnKit,
-			kd->widthOnKit, kd->heightOnKit);
+	debug("Print on kit(%d): k[%d,%d], kRel[%d,%d] -> %dx%d, p[%d,%d] -> %dx%d", ssKit, kd->xKit, kd->yKit, kd->xRelKit,
+			kd->yRelKit, kd->xRelKitSize, kd->yRelKitSize, kd->xOnKit, kd->yOnKit, kd->xOnKitSize, kd->yOnKitSize);
 #endif
 
 	uint8_t yData = kd->yRelKit == 0 ? 0 : (KIT_DIM - kd->yOnFirstKit);
 	if (kd->yRelKit >= 2) {
 		yData += (KIT_DIM * kd->yRelKit);
 	}
-	for (uint8_t yOnKit = kd->yOnKit; yOnKit < KIT_DIM; yOnKit++) {
-		// vertical position of data is not shifted relatively to first kit
+
+	// go over rows on single LED-Kit
+	for (uint8_t yOnKit = kd->yOnKit; yOnKit < kd->yOnKitSize; yOnKit++) {
+
+		uint8_t rowData;
+
+		// Vertical position of data is not shifted relatively to first kit
+		// data consists of 8 bit values and those align perfectly with 8 LED rows
 		if (kd->xOnFirstKit == 0) {
-			uint8_t xData = 0;
-			uint8_t rowData = data[xData][yData];
+			rowData = data[kd->xKit][yData];
 
+			debug("--- Overlap: %d = 0x%02x", yOnKit, rowData);
+
+			// TODO
 		} else {
-			// x-data position on first kit is shifted, so we need two bytes of data to cover single row on one LED-Kit
-			uint8_t xDataLeft = 0;
-			uint8_t xDataRight = 0;
+			// on the first kit we have only one byte
+			if (kd->xRelKit == 0) {
+				rowData = data[0][yData];
+				// TODO
+				debug("--- First: %d = 0x%02x", yOnKit, rowData);
 
-			// on the first and last kit we have only one byte
-			if (isEageKitOnX(kd)) {
-				uint8_t xData = 0;
+				// Vertical position on first kit is shifted, so we need two bytes of data to cover single row
+				// on one LED-Kit
 			} else {
-				uint8_t rowDataLeft = data[xDataLeft][yData];
-				uint8_t rowDataRight = data[xDataRight][yData];
-			}
-		}
 
+				// on the last kit we might have only left-byte (one), this happens when pixel data fits on LED-Matrix
+				// without trimming. For example row has 4 LED-Kits and data width in pixels is 24 - 3 bytes.
+				if (kd->xRelKit == kd->xRelKitSize - 1 && !kd->xKitSizeLimited) {
+					rowData = data[kd->xRelKit - 1][yData];
+					debug("--- Last: %d = 0x%02x", yOnKit, rowData);
+					// TODO
+				} else {
+
+					rowData = data[kd->xRelKit - 1][yData];
+					uint8_t rowDataRight = data[kd->xRelKit][yData];
+
+					debug("--- L-R: %d = 0x%02x, 0x%02x", yOnKit, rowDataRight);
+					// TODO
+				}
+			}
+
+		}
+		//send(ssKit, yOnKit, rowData);
 		yData++;
 	}
-}
-
-/** Return true whether we are on first or last kit */
-inline boolean Display::isEageKitOnX(KitData *kd) {
-	return kd->xRelKit == 0 || kd->widthOnKit != KIT_DIM;
 }
 
 void Display::setupMax(uint8_t ss) {
@@ -198,6 +219,10 @@ void Display::clear(uint8_t ss) {
 
 /* Transfers data to a MAX7219. */
 void Display::send(uint8_t ss, uint8_t address, uint8_t data) {
+
+#if DEBUG
+	debug("Send(%d): %d = 0x%02x", ss, address, data);
+#endif
 
 	// Ensure LOAD/CS is LOW
 	digitalWrite(ss, LOW);
