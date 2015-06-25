@@ -102,8 +102,8 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 	KitData *kd = (KitData*) malloc(sizeof(KitData));
 	kd->xRelKit = 0;
 	kd->yRelKit = 0;
-	kd->xRelKitSize = endKitX - startKitX;
-	kd->yRelKitSize = endKitY - startKitY;
+	kd->xRelKitSize = endKitX - startKitX + 1;
+	kd->yRelKitSize = endKitY - startKitY + 1;
 	kd->xKitSizeLimited = widthLim != width;
 
 	for (kd->yKit = startKitY; kd->yKit <= endKitY; kd->yKit++) {
@@ -113,6 +113,7 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 			kd->yOnKit = 0;
 		}
 		kd->yOnKitSize = calcSizeOnKit(y, heightLim, kd->yKit, kd->yOnKit, startKitY, endKitY);
+		kd->xRelKit = 0;
 
 		for (kd->xKit = startKitX; kd->xKit <= endKitX; kd->xKit++) {
 			if (kd->xKit == startKitX) {
@@ -133,7 +134,7 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 inline void Display::printOnKit(KitData *kd, uint8_t **data) {
 	uint8_t ssKit = ss[kd->xKit][kd->yKit];
 #if DEBUG
-	debug("Print on kit(%d): k[%d,%d], kRel[%d,%d] -> %dx%d, p[%d,%d] -> %dx%d", ssKit, kd->xKit, kd->yKit, kd->xRelKit,
+	debug("Print on kit(%d): k[%d,%d], kr[%d,%d] -> %dx%d, p[%d,%d] -> %dx%d", ssKit, kd->xKit, kd->yKit, kd->xRelKit,
 			kd->yRelKit, kd->xRelKitSize, kd->yRelKitSize, kd->xOnKit, kd->yOnKit, kd->xOnKitSize, kd->yOnKitSize);
 #endif
 
@@ -143,25 +144,29 @@ inline void Display::printOnKit(KitData *kd, uint8_t **data) {
 	}
 
 	// go over rows on single LED-Kit
-	for (uint8_t yOnKit = kd->yOnKit; yOnKit < kd->yOnKitSize; yOnKit++) {
+	uint8_t yOnKit = kd->yOnKit;
+	for (uint8_t i = 0; i < kd->yOnKitSize; i++) {
 
-		uint8_t rowData;
+		uint8_t yByte;
 
 		// Vertical position of data is not shifted relatively to first kit
 		// data consists of 8 bit values and those align perfectly with 8 LED rows
 		if (kd->xOnFirstKit == 0) {
-			rowData = data[kd->xKit][yData];
+			yByte = data[yData][kd->xKit];
 
-			debug("--- Overlap: %d = 0x%02x", yOnKit, rowData);
+#if DEBUG
+			debug("-- Overlap -> %d -> data[%d][%d] = 0x%02x", yOnKit, yData, kd->xKit, yByte);
+#endif
 
 			// TODO
 		} else {
 			// on the first kit we have only one byte
 			if (kd->xRelKit == 0) {
-				rowData = data[0][yData];
+				yByte = data[yData][0];
 				// TODO
-				debug("--- First: %d = 0x%02x", yOnKit, rowData);
-
+#if DEBUG
+				debug("-- First Kit -> %d -> data[%d][0] = 0x%02x", yOnKit, yData, yByte);
+#endif
 				// Vertical position on first kit is shifted, so we need two bytes of data to cover single row
 				// on one LED-Kit
 			} else {
@@ -169,21 +174,27 @@ inline void Display::printOnKit(KitData *kd, uint8_t **data) {
 				// on the last kit we might have only left-byte (one), this happens when pixel data fits on LED-Matrix
 				// without trimming. For example row has 4 LED-Kits and data width in pixels is 24 - 3 bytes.
 				if (kd->xRelKit == kd->xRelKitSize - 1 && !kd->xKitSizeLimited) {
-					rowData = data[kd->xRelKit - 1][yData];
-					debug("--- Last: %d = 0x%02x", yOnKit, rowData);
+					yByte = data[yData][kd->xRelKit - 1];
 					// TODO
+#if DEBUG
+					debug("-- Last Kit -> %d -> data[%d][%d] = 0x%02x", yOnKit, yData, kd->xRelKit - 1, yByte);
+#endif
 				} else {
 
-					rowData = data[kd->xRelKit - 1][yData];
+					yByte = data[yData][kd->xRelKit - 1];
 					uint8_t rowDataRight = data[kd->xRelKit][yData];
-
-					debug("--- L-R: %d = 0x%02x, 0x%02x", yOnKit, rowDataRight);
 					// TODO
+#if DEBUG
+					debug("-- Middle Kit -> %d -> data[%d][%d] = 0x%02x, 0x%02x", yOnKit, yData, kd->xRelKit - 1, yByte,
+							rowDataRight);
+#endif
+
 				}
 			}
 
 		}
 		//send(ssKit, yOnKit, rowData);
+		yOnKit++;
 		yData++;
 	}
 }
@@ -192,18 +203,19 @@ void Display::setupMax(uint8_t ss) {
 #if DEBUG
 	debug("Configuring MAX7219 on SS: %d", ss);
 #endif
+	/*
+	 pinMode(ss, OUTPUT);
 
-	pinMode(ss, OUTPUT);
+	 // disable shutdown mode
+	 send(ss, REG_SHUTDOWN, 1);
 
-	// disable shutdown mode
-	send(ss, REG_SHUTDOWN, 1);
+	 // display test
+	 send(ss, REG_DISPLAYTEST, 0);
 
-	// display test
-	send(ss, REG_DISPLAYTEST, 0);
-
-	send(ss, REG_INTENSITY, 15);  // character intensity: range: 0 to 15
-	send(ss, REG_SCANLIMIT, 7);   // show all 8 digits
-	send(ss, REG_DECODEMODE, 0);  // using an led matrix (not digits)
+	 send(ss, REG_INTENSITY, 15);  // character intensity: range: 0 to 15
+	 send(ss, REG_SCANLIMIT, 7);   // show all 8 digits
+	 send(ss, REG_DECODEMODE, 0);  // using an led matrix (not digits)
+	 */
 }
 
 void Display::clear(uint8_t ss) {
@@ -219,7 +231,7 @@ void Display::clear(uint8_t ss) {
 
 /* Transfers data to a MAX7219. */
 void Display::send(uint8_t ss, uint8_t address, uint8_t data) {
-
+/*
 #if DEBUG
 	debug("Send(%d): %d = 0x%02x", ss, address, data);
 #endif
@@ -235,4 +247,5 @@ void Display::send(uint8_t ss, uint8_t address, uint8_t data) {
 
 	// Tell chip to load in data
 	digitalWrite(ss, HIGH);
+	*/
 }

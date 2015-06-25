@@ -57,10 +57,14 @@ public:
 	/**
 	 * Prints given matrix on the display starting at pixel on [x,y] position.
 	 * Matrix dimension in pixels is given by #width and #height. It can exceed display size, in this case it will
-	 * get trimmed. Matrix data is stored in two dimensional array of bytes, where single bit represents one pixel,
-	 * first position in array indicates x second y: data[x][y].
+	 * be trimmed.
 	 *
-	 * Data array starts from 0 and given [x,y] is inclusive. #width and #height gives amount of pixels on x
+	 * Matrix data is stored in two dimensional array of bytes, where single bit represents one pixel.
+	 * First position in #data array indicates row, second pixels within this row: #data[y][x]. Each byte contains
+	 * 8 pixels. For example: structure consisting of 5 rows and 14 pixels per row has dimension: data[5][2] - we need
+	 * two bytes per row to express 14 pixels. Also second byte of each row uses only first 6 bits -> 8 + 6 = 14
+	 *
+	 * Data array starts from 0 and given [y,x] is inclusive. #width and #height gives amount of pixels on x
 	 * and y axis. This gives us a rectangle with position: [x,y]-[#width-1,#height-1]
 	 *
 	 * For example, matrix consisting of 3x2 bytes has maximal dimension 24(3*8) on 16(2*8) pixels,
@@ -101,7 +105,7 @@ private:
 		uint8_t xRelKit;
 		uint8_t yRelKit;
 
-		/** [x,y] position starting from first Kit that we are panting on. */
+		/** Amount of LED-Kits used for painting */
 		uint8_t xRelKitSize;
 		uint8_t yRelKitSize;
 
