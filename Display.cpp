@@ -99,12 +99,17 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 	debug("Using kits: k[%d,%d] - k[%d,%d] with pixel w/h: %dx%d", startKitX, startKitY, endKitX, endKitY, widthLim,
 			heightLim);
 #endif
+
 	KitData *kd = (KitData*) malloc(sizeof(KitData));
 	kd->xRelKit = 0;
 	kd->yRelKit = 0;
 	kd->xRelKitSize = endKitX - startKitX + 1;
 	kd->yRelKitSize = endKitY - startKitY + 1;
-	kd->xKitSizeLimited = widthLim != width;
+
+	kd->xDataBytes = widthLim / KIT_DIM;
+	if (kd->xDataBytes * KIT_DIM < widthLim) {
+		kd->xDataBytes++;
+	}
 
 	for (kd->yKit = startKitY; kd->yKit <= endKitY; kd->yKit++) {
 		if (kd->yKit == startKitY) {
@@ -131,6 +136,7 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 	free(kd);
 }
 
+
 inline void Display::printOnKit(KitData *kd, uint8_t **data) {
 	uint8_t ssKit = ss[kd->xKit][kd->yKit];
 #if DEBUG
@@ -140,63 +146,85 @@ inline void Display::printOnKit(KitData *kd, uint8_t **data) {
 
 	uint8_t yData = kd->yRelKit == 0 ? 0 : (KIT_DIM - kd->yOnFirstKit);
 	if (kd->yRelKit >= 2) {
-		yData += (KIT_DIM * kd->yRelKit);
+		yData += (KIT_DIM * (kd->yRelKit - 1));
 	}
 
 	// go over rows on single LED-Kit
 	uint8_t yOnKit = kd->yOnKit;
 	for (uint8_t i = 0; i < kd->yOnKitSize; i++) {
-
-		uint8_t yByte;
-
-		// Vertical position of data is not shifted relatively to first kit
-		// data consists of 8 bit values and those align perfectly with 8 LED rows
 		if (kd->xOnFirstKit == 0) {
-			yByte = data[yData][kd->xKit];
-
-#if DEBUG
-			debug("-- Overlap -> %d -> data[%d][%d] = 0x%02x", yOnKit, yData, kd->xKit, yByte);
-#endif
-
-			// TODO
+			printRowOverlaps(yData, yOnKit, kd, data);
 		} else {
-			// on the first kit we have only one byte
 			if (kd->xRelKit == 0) {
-				yByte = data[yData][0];
-				// TODO
-#if DEBUG
-				debug("-- First Kit -> %d -> data[%d][0] = 0x%02x", yOnKit, yData, yByte);
-#endif
-				// Vertical position on first kit is shifted, so we need two bytes of data to cover single row
-				// on one LED-Kit
+				printRowOnFirstKit(yData, yOnKit, kd, data);
 			} else {
-
-				// on the last kit we might have only left-byte (one), this happens when pixel data fits on LED-Matrix
-				// without trimming. For example row has 4 LED-Kits and data width in pixels is 24 - 3 bytes.
-				if (kd->xRelKit == kd->xRelKitSize - 1 && !kd->xKitSizeLimited) {
-					yByte = data[yData][kd->xRelKit - 1];
-					// TODO
-#if DEBUG
-					debug("-- Last Kit -> %d -> data[%d][%d] = 0x%02x", yOnKit, yData, kd->xRelKit - 1, yByte);
-#endif
+				if (kd->xRelKit < kd->xDataBytes) {
+					printRow2Bytes(yData, yOnKit, kd, data);
 				} else {
-
-					yByte = data[yData][kd->xRelKit - 1];
-					uint8_t rowDataRight = data[kd->xRelKit][yData];
-					// TODO
-#if DEBUG
-					debug("-- Middle Kit -> %d -> data[%d][%d] = 0x%02x, 0x%02x", yOnKit, yData, kd->xRelKit - 1, yByte,
-							rowDataRight);
-#endif
-
+					printRow1Byte(yData, yOnKit, kd, data);
 				}
-			}
 
+			}
 		}
-		//send(ssKit, yOnKit, rowData);
 		yOnKit++;
 		yData++;
 	}
+}
+
+/**
+ *  Vertical position of data is not shifted relatively to first kit
+ *  data consists of 8 bit values and those align perfectly with 8 LED rows
+ */
+inline void Display::printRowOverlaps(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data) {
+	uint8_t yByte = data[yData][kd->xKit];
+
+#if DEBUG
+	debug("-- Overlap -> %d -> data[%d][%d] = 0x%02x", yOnKit, yData, kd->xKit, yByte);
+#endif
+}
+
+inline void Display::printRowOnFirstKit(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data) {
+	uint8_t yByte = data[yData][0];
+#if DEBUG
+	debug("-- First Kit -> %d -> data[%d][0] = 0x%02x", yOnKit, yData, yByte);
+#endif
+}
+
+/**
+ *  Vertical position on first kit is shifted, so we need two bytes of data to cover single row on one LED-Kit
+ */
+inline void Display::printRow2Bytes(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data) {
+	uint8_t yByte = data[yData][kd->xRelKit - 1];
+	uint8_t yByteRight = data[yData][kd->xRelKit];
+#if DEBUG
+	debug("-- Kit 2 byte -> %d -> data[%d][%d] = 0x%02x, data[%d][%d] = 0x%02x", yOnKit, yData, kd->xRelKit - 1, yByte,
+			yData, kd->xRelKit, yByteRight);
+#endif
+}
+
+/**
+ *  This is exception to method using 2 bytes. On the last kit it might be sufficient to use only one byte to
+ *  print single row, because width limits amount of pixel within row.
+ *
+ *  For example: we have 3 LED-Kits in vertical position, width set to 15, and y start position set to 3.
+ *  In this case we will set flowing bits:
+ *  on first kit: 3-8 -> uses 5 bits of first byte
+ *  on second kit: 0-8 -> uses 3 bits of first byte and 5 bits of second byte
+ *  on third kit: 0-1 -> uses 2 bits of second byte
+ *  On the last kit we need only single byte.
+ *
+ *  Another example: we have 3 LED-Kits in vertical position, width set to 17, and y start position set to 3.
+ *  In this case we will set flowing bits:
+ *  on first kit: 3-8 -> uses 5 bits of first byte
+ *  on second kit: 0-8 -> uses 3 bits of first byte and 5 bits of second byte
+ *  on third kit: 0-3 -> uses 3 bits of second and 1 bit of third byte
+ *  On the last kit we need 2 bytes.
+ */
+inline void Display::printRow1Byte(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data) {
+	uint8_t yByte = data[yData][kd->xRelKit - 1];
+#if DEBUG
+	debug("-- Kit 1 byte -> %d -> data[%d][%d] = 0x%02x", yOnKit, yData, kd->xRelKit - 1, yByte);
+#endif
 }
 
 void Display::setupMax(uint8_t ss) {
@@ -231,21 +259,21 @@ void Display::clear(uint8_t ss) {
 
 /* Transfers data to a MAX7219. */
 void Display::send(uint8_t ss, uint8_t address, uint8_t data) {
-/*
-#if DEBUG
-	debug("Send(%d): %d = 0x%02x", ss, address, data);
-#endif
+	/*
+	 #if DEBUG
+	 debug("Send(%d): %d = 0x%02x", ss, address, data);
+	 #endif
 
-	// Ensure LOAD/CS is LOW
-	digitalWrite(ss, LOW);
+	 // Ensure LOAD/CS is LOW
+	 digitalWrite(ss, LOW);
 
-	// Send the register address
-	SPI.transfer(address);
+	 // Send the register address
+	 SPI.transfer(address);
 
-	// Send the value
-	SPI.transfer(data);
+	 // Send the value
+	 SPI.transfer(data);
 
-	// Tell chip to load in data
-	digitalWrite(ss, HIGH);
-	*/
+	 // Tell chip to load in data
+	 digitalWrite(ss, HIGH);
+	 */
 }

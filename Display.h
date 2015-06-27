@@ -109,12 +109,12 @@ private:
 		uint8_t xRelKitSize;
 		uint8_t yRelKitSize;
 
+		/** Amount of bytes from #data containing pixels for x-axis (vertical) - second argument of #data[y][x] */
+		uint8_t xDataBytes;
+
 		/** [x,y] Kit position starting from first Kit in LED-Kit-Matrix. */
 		uint8_t xKit;
 		uint8_t yKit;
-
-		/** true if the data's width had to be limited in order to fit on the LED-Matrix. */
-		boolean xKitSizeLimited;
 
 		/** [x,y] position on kit that we are painting on. */
 		uint8_t xOnKit;
@@ -135,6 +135,10 @@ private:
 	inline uint8_t calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uint8_t xyOnKit, uint8_t startKitXY,
 			uint8_t endKitXY);
 	inline void printOnKit(KitData *kd, uint8_t **data);
+	inline void printRowOverlaps(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data);
+	inline void printRowOnFirstKit(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data);
+	inline void printRow2Bytes(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data);
+	inline void printRow1Byte(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data)
 };
 
 #endif /* DISPLAY_H_ */
