@@ -28,6 +28,15 @@ Display::Display(uint8_t xKits, uint8_t yKits, uint8_t **ss) {
 		memset(this->sbuf[x], 0x00, sizeof(this->sbuf[x]));
 	}
 
+	// init screen buffer
+	uint8_t rows = yKits * KIT_DIM;
+	screen = new uint8_t*[rows];
+	for (uint8_t y = 0; y < rows; y++) {
+		screen[y] = new uint8_t[xKits];
+		for (uint8_t x = 0; x < xKits; x++) {
+			screen[y][x] = 0x0;
+		}
+	}
 #if DEBUG
 	debug("Created display with %dx%d LED-Kits", xKits, yKits);
 #endif
@@ -52,17 +61,14 @@ void Display::setupMax() {
 	}
 }
 
-/** reduce width/height so it fits on the screen */
 inline uint8_t Display::limitSize(uint8_t xy, uint8_t wh, uint8_t startKitXY, uint8_t endKitXY) {
 	return min(wh, (endKitXY - startKitXY + 1) * KIT_DIM - xy % KIT_DIM);
 }
 
-/** find ending 8x8-Matrix - inclusive */
 inline uint8_t Display::calcEndKit(uint8_t xy, uint8_t wh, uint8_t yxKits) {
 	return min(((xy + wh - 1) / KIT_DIM), yxKits - 1);
 }
 
-/** calculate width/height within current kit */
 inline uint8_t Display::calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uint8_t xyOnKit, uint8_t startKitXY,
 		uint8_t endKitXY) {
 	uint8_t widthOnKit = 0;
@@ -80,7 +86,7 @@ inline uint8_t Display::calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uin
 	return widthOnKit;
 }
 
-void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **data) {
+void Display::paint(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **data) {
 #if DEBUG
 	debug("Print pixels: p[%d,%d] -> %dx%d", x, y, width, height);
 #endif
@@ -112,14 +118,22 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 	}
 
 	for (kd->yKit = startKitY; kd->yKit <= endKitY; kd->yKit++) {
+		kd->yOnScreenIdx = kd->yKit * KIT_DIM;
 		if (kd->yKit == startKitY) {
 			kd->yOnFirstKit = kd->yOnKit = y - (startKitY * KIT_DIM);
+			kd->yOnScreenIdx += kd->yOnKit;
 		} else {
 			kd->yOnKit = 0;
 		}
-		kd->yOnKitSize = calcSizeOnKit(y, heightLim, kd->yKit, kd->yOnKit, startKitY, endKitY);
-		kd->xRelKit = 0;
 
+		kd->yOnKitSize = calcSizeOnKit(y, heightLim, kd->yKit, kd->yOnKit, startKitY, endKitY);
+
+		kd->yDataIdx = kd->yRelKit == 0 ? 0 : (KIT_DIM - kd->yOnFirstKit);
+		if (kd->yRelKit >= 2) {
+			kd->yDataIdx += (KIT_DIM * (kd->yRelKit - 1));
+		}
+
+		kd->xRelKit = 0;
 		for (kd->xKit = startKitX; kd->xKit <= endKitX; kd->xKit++) {
 			if (kd->xKit == startKitX) {
 				kd->xOnFirstKit = kd->xOnKit = x - (startKitX * KIT_DIM);
@@ -127,8 +141,10 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 				kd->xOnKit = 0;
 			}
 			kd->xOnKitSize = calcSizeOnKit(x, widthLim, kd->xKit, kd->xOnKit, startKitX, endKitX);
+			kd->xOnScreenIdx = kd->xKit;
 
-			printOnKit(kd, data);
+			paintOnKit(*kd, data); // pass kd by reference, it will be modified inside
+
 			kd->xRelKit++;
 		}
 		kd->yRelKit++;
@@ -136,95 +152,77 @@ void Display::print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 	free(kd);
 }
 
-
-inline void Display::printOnKit(KitData *kd, uint8_t **data) {
-	uint8_t ssKit = ss[kd->xKit][kd->yKit];
+inline void Display::paintOnKit(KitData kd, uint8_t **data) {
+	uint8_t ssKit = ss[kd.xKit][kd.yKit];
 #if DEBUG
-	debug("Print on kit(%d): k[%d,%d], kr[%d,%d] -> %dx%d, p[%d,%d] -> %dx%d", ssKit, kd->xKit, kd->yKit, kd->xRelKit,
-			kd->yRelKit, kd->xRelKitSize, kd->yRelKitSize, kd->xOnKit, kd->yOnKit, kd->xOnKitSize, kd->yOnKitSize);
+	debug("Print on kit(%d): k[%d,%d], kr[%d,%d] -> %dx%d, p[%d,%d] -> %dx%d", ssKit, kd.xKit, kd.yKit, kd.xRelKit,
+			kd.yRelKit, kd.xRelKitSize, kd.yRelKitSize, kd.xOnKit, kd.yOnKit, kd.xOnKitSize, kd.yOnKitSize);
 #endif
-
-	uint8_t yData = kd->yRelKit == 0 ? 0 : (KIT_DIM - kd->yOnFirstKit);
-	if (kd->yRelKit >= 2) {
-		yData += (KIT_DIM * (kd->yRelKit - 1));
-	}
 
 	// go over rows on single LED-Kit
-	uint8_t yOnKit = kd->yOnKit;
-	for (uint8_t i = 0; i < kd->yOnKitSize; i++) {
-		if (kd->xOnFirstKit == 0) {
-			printRowOverlaps(yData, yOnKit, kd, data);
+	for (uint8_t yOnKit = 0; yOnKit < kd.yOnKitSize; yOnKit++) {
+		if (kd.xOnFirstKit == 0) {
+			paintRowOverlaps(&kd, data);
 		} else {
-			if (kd->xRelKit == 0) {
-				printRowOnFirstKit(yData, yOnKit, kd, data);
+			if (kd.xRelKit == 0) {
+				paintRowOnFirstKit(&kd, data);
 			} else {
-				if (kd->xRelKit < kd->xDataBytes) {
-					printRow2Bytes(yData, yOnKit, kd, data);
+				if (kd.xRelKit < kd.xDataBytes) {
+					paintRow2Bytes(&kd, data);
 				} else {
-					printRow1Byte(yData, yOnKit, kd, data);
+					paintRow1ByteOnLastKit(&kd, data);
 				}
-
 			}
 		}
-		yOnKit++;
-		yData++;
+		kd.yOnKit++;
+		kd.yDataIdx++;
 	}
 }
 
-/**
- *  Vertical position of data is not shifted relatively to first kit
- *  data consists of 8 bit values and those align perfectly with 8 LED rows
- */
-inline void Display::printRowOverlaps(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data) {
-	uint8_t yByte = data[yData][kd->xKit];
+inline void Display::paintRowOverlaps(KitData *kd, uint8_t **data) {
+	uint8_t yByte = data[kd->yDataIdx][kd->xKit];
 
 #if DEBUG
-	debug("-- Overlap -> %d -> data[%d][%d] = 0x%02x", yOnKit, yData, kd->xKit, yByte);
+	debug("-- Overlap (%d) -> data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx, kd->xKit, yByte);
+#endif
+
+	// TODO
+}
+
+inline void Display::paintRowOnFirstKit(KitData *kd, uint8_t **data) {
+	uint8_t yByte = data[kd->yDataIdx][0];
+	uint8_t dispByte = screen[kd->yOnScreenIdx][kd->xOnScreenIdx];
+	uint8_t newDispByte = (dispByte & maskL(kd->xOnKit)) | (yByte & maskR(KIT_DIM - kd->xOnKit));
+	screen[kd->yOnScreenIdx][kd->xOnScreenIdx] = newDispByte;
+
+#if DEBUG
+	String fnewDispByte;
+	fbyte(newDispByte, fnewDispByte);
+	debug("-- First Kit (%d) -> data[%d][0] = 0x%02x, screen[%d][%d] = 0x%02x <- %s", kd->yOnKit, kd->yDataIdx, yByte,
+			kd->yOnScreenIdx, kd->xOnScreenIdx, dispByte, newDispByte);
 #endif
 }
 
-inline void Display::printRowOnFirstKit(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data) {
-	uint8_t yByte = data[yData][0];
+inline void Display::paintRow2Bytes(KitData *kd, uint8_t **data) {
+	uint8_t yByte = data[kd->yDataIdx][kd->xRelKit - 1];
+	uint8_t yByteRight = data[kd->yDataIdx][kd->xRelKit];
+	uint8_t newDispByte =
+
 #if DEBUG
-	debug("-- First Kit -> %d -> data[%d][0] = 0x%02x", yOnKit, yData, yByte);
+	debug("-- Kit 2 byte (%d) -> data[%d][%d] = 0x%02x, data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx,
+			kd->xRelKit - 1, yByte, kd->yDataIdx, kd->xRelKit, yByteRight);
 #endif
+
+	// TODO
 }
 
-/**
- *  Vertical position on first kit is shifted, so we need two bytes of data to cover single row on one LED-Kit
- */
-inline void Display::printRow2Bytes(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data) {
-	uint8_t yByte = data[yData][kd->xRelKit - 1];
-	uint8_t yByteRight = data[yData][kd->xRelKit];
+inline void Display::paintRow1ByteOnLastKit(KitData *kd, uint8_t **data) {
+	uint8_t yByte = data[kd->yDataIdx][kd->xRelKit - 1];
 #if DEBUG
-	debug("-- Kit 2 byte -> %d -> data[%d][%d] = 0x%02x, data[%d][%d] = 0x%02x", yOnKit, yData, kd->xRelKit - 1, yByte,
-			yData, kd->xRelKit, yByteRight);
+	debug("-- Kit 1 byte (%d) -> data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, yByte);
 #endif
-}
 
-/**
- *  This is exception to method using 2 bytes. On the last kit it might be sufficient to use only one byte to
- *  print single row, because width limits amount of pixel within row.
- *
- *  For example: we have 3 LED-Kits in vertical position, width set to 15, and y start position set to 3.
- *  In this case we will set flowing bits:
- *  on first kit: 3-8 -> uses 5 bits of first byte
- *  on second kit: 0-8 -> uses 3 bits of first byte and 5 bits of second byte
- *  on third kit: 0-1 -> uses 2 bits of second byte
- *  On the last kit we need only single byte.
- *
- *  Another example: we have 3 LED-Kits in vertical position, width set to 17, and y start position set to 3.
- *  In this case we will set flowing bits:
- *  on first kit: 3-8 -> uses 5 bits of first byte
- *  on second kit: 0-8 -> uses 3 bits of first byte and 5 bits of second byte
- *  on third kit: 0-3 -> uses 3 bits of second and 1 bit of third byte
- *  On the last kit we need 2 bytes.
- */
-inline void Display::printRow1Byte(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data) {
-	uint8_t yByte = data[yData][kd->xRelKit - 1];
-#if DEBUG
-	debug("-- Kit 1 byte -> %d -> data[%d][%d] = 0x%02x", yOnKit, yData, kd->xRelKit - 1, yByte);
-#endif
+	// TODO
 }
 
 void Display::setupMax(uint8_t ss) {
@@ -246,7 +244,7 @@ void Display::setupMax(uint8_t ss) {
 	 */
 }
 
-void Display::clear(uint8_t ss) {
+void Display::clearKit(uint8_t ss) {
 	send(ss, REG_DIGIT0, 0);
 	send(ss, REG_DIGIT1, 0);
 	send(ss, REG_DIGIT2, 0);

@@ -70,7 +70,7 @@ public:
 	 * For example, matrix consisting of 3x2 bytes has maximal dimension 24(3*8) on 16(2*8) pixels,
 	 * which gives us a 384 pixels in total.
 	 */
-	void print(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **data);
+	void paint(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **data);
 
 	/** Initialized SPI and 8x8-Matrix elements. */
 	void setup();
@@ -94,6 +94,12 @@ private:
 	/** Vertical amount of 8x8-Matrices */
 	uint8_t yKits;
 
+	/**
+	 * Contains data for each LED-Kit. Painting procedure goes over all kits and KitData will be actualized
+	 * for each Kit.
+	 *
+	 * Variables ending with underscore MUST NOT be modified outside #paint() function
+	 */
 	typedef struct {
 		// all [x,y] coordinates starting from 0 and are inclusive.
 
@@ -109,7 +115,10 @@ private:
 		uint8_t xRelKitSize;
 		uint8_t yRelKitSize;
 
-		/** Amount of bytes from #data containing pixels for x-axis (vertical) - second argument of #data[y][x] */
+		/**
+		 * Amount of bytes from #data containing pixels for x-axis (vertical) - second argument of #data[y][x].
+		 * Amount is already limited so that it only covers Kits that will be used for painting.
+		 */
 		uint8_t xDataBytes;
 
 		/** [x,y] Kit position starting from first Kit in LED-Kit-Matrix. */
@@ -123,22 +132,79 @@ private:
 		/** dimensions on kit that we are painting on. */
 		uint8_t xOnKitSize;
 		uint8_t yOnKitSize;
+
+		/** [x,y] for #screen[y,x]  */
+		uint8_t xOnScreenIdx;
+		uint8_t yOnScreenIdx;
+
+		// y position on #data
+		uint8_t yDataIdx;
 	} KitData;
+
+	/**
+	 * Two dimensional array containing pixels for LED-Kits. Each LED-Kit hat embedded memory, but we need to keep pixel
+	 * state in RAM in order to calculate row value for case when more the one sprite has to be displayed on single
+	 * LED-Kit.
+	 * Print method displays single sprite and it crosses few LED-Kits, we have only to set pixels for this sprite
+	 * without affecting other spites, so we have to calculate byte for single row that contains pixels for already
+	 * painted sprite and from new one.
+	 *
+	 * First dimension in display data indicates row, second kit. For example #displayRAM[2][3] indicates
+	 * 3rd row on 4th kit.
+	 */
+	uint8_t **screen;
 
 	void setupMax();
 	void setupMax(uint8_t ss);
 	void setupSpi();
 	void send(uint8_t ss, uint8_t address, uint8_t value);
-	void clear(uint8_t ss);
+	void clearKit(uint8_t ss);
+
+	/** reduce width/height so it fits on the screen */
 	inline uint8_t limitSize(uint8_t xy, uint8_t wh, uint8_t startKitXY, uint8_t endKitXY);
+
+	/** find ending 8x8-Matrix - inclusive */
 	inline uint8_t calcEndKit(uint8_t xy, uint8_t wh, uint8_t yxKits);
+
+	/** calculate width/height within current kit */
 	inline uint8_t calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uint8_t xyOnKit, uint8_t startKitXY,
 			uint8_t endKitXY);
-	inline void printOnKit(KitData *kd, uint8_t **data);
-	inline void printRowOverlaps(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data);
-	inline void printRowOnFirstKit(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data);
-	inline void printRow2Bytes(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data);
-	inline void printRow1Byte(uint8_t yData, uint8_t yOnKit, KitData *kd, uint8_t **data)
+
+	/** Pass kd by reference, because values will get modified inside function */
+	inline void paintOnKit(KitData kd, uint8_t **data);
+
+	/**
+	 *  Vertical position of data is not shifted relatively to first kit
+	 *  data consists of 8 bit values and those align perfectly with 8 LED rows
+	 */
+	inline void paintRowOverlaps(KitData *kd, uint8_t **data);
+	inline void paintRowOnFirstKit(KitData *kd, uint8_t **data);
+
+	/**
+	 *  Vertical position on first kit is shifted, so we need two bytes of data to cover single row on one LED-Kit.
+	 *  This method will be used to paint row on middle kit and also on last kit.
+	 */
+	inline void paintRow2Bytes(KitData *kd, uint8_t **data);
+
+	/**
+	 *  This is exception to method using 2 bytes. On the last kit it might be sufficient to use only one byte to
+	 *  print single row, because width limits amount of pixel within row.
+	 *
+	 *  For example: we have 3 LED-Kits in vertical position, width set to 15, and y start position set to 3.
+	 *  In this case we will set flowing bits:
+	 *  on first kit: 3-8 -> uses 5 bits of first byte
+	 *  on second kit: 0-8 -> uses 3 bits of first byte and 5 bits of second byte
+	 *  on third kit: 0-1 -> uses 2 bits of second byte
+	 *  On the last kit we need only single byte.
+	 *
+	 *  Another example: we have 3 LED-Kits in vertical position, width set to 17, and y start position set to 3.
+	 *  In this case we will set flowing bits:
+	 *  on first kit: 3-8 -> uses 5 bits of first byte
+	 *  on second kit: 0-8 -> uses 3 bits of first byte and 5 bits of second byte
+	 *  on third kit: 0-3 -> uses 3 bits of second and 1 bit of third byte
+	 *  On the last kit we need 2 bytes.
+	 */
+	inline void paintRow1ByteOnLastKit(KitData *kd, uint8_t **data);
 };
 
 #endif /* DISPLAY_H_ */
