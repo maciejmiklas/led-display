@@ -161,25 +161,28 @@ inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 
 	// go over rows on single LED-Kit
 	for (uint8_t yOnKit = 0; yOnKit < kd.yOnKitSize; yOnKit++) {
+		uint8_t newDispByte;
 		if (kd.xOnFirstKit == 0) {
-			paintRowOverlaps(&kd, data);
+			newDispByte = paintRowOverlaps(&kd, data);
 		} else {
 			if (kd.xRelKit == 0) {
-				paintRowOnFirstKit(&kd, data);
+				newDispByte = paintRowOnFirstKit(&kd, data);
 			} else {
 				if (kd.xRelKit < kd.xDataBytes) {
-					paintRow2Bytes(&kd, data);
+					newDispByte = paintRow2Bytes(&kd, data);
 				} else {
-					paintRow1ByteOnLastKit(&kd, data);
+					newDispByte = paintRowOnLastKit1Byte(&kd, data);
 				}
 			}
 		}
+		screen[kd.yOnScreenIdx][kd.xOnScreenIdx] = newDispByte;
+
 		kd.yOnKit++;
 		kd.yDataIdx++;
 	}
 }
 
-inline void Display::paintRowOverlaps(KitData *kd, uint8_t **data) {
+inline uint8_t Display::paintRowOverlaps(KitData *kd, uint8_t **data) {
 	uint8_t yByte = data[kd->yDataIdx][kd->xKit];
 
 #if DEBUG
@@ -187,42 +190,71 @@ inline void Display::paintRowOverlaps(KitData *kd, uint8_t **data) {
 #endif
 
 	// TODO
+	return 0;
 }
 
-inline void Display::paintRowOnFirstKit(KitData *kd, uint8_t **data) {
+inline uint8_t Display::paintRowOnFirstKit(KitData *kd, uint8_t **data) {
 	uint8_t yByte = data[kd->yDataIdx][0];
-	uint8_t dispByte = screen[kd->yOnScreenIdx][kd->xOnScreenIdx];
-	uint8_t newDispByte = (dispByte & maskL(kd->xOnKit)) | (yByte & maskR(KIT_DIM - kd->xOnKit));
-	screen[kd->yOnScreenIdx][kd->xOnScreenIdx] = newDispByte;
+	uint8_t yByteMasked = yByte >> kd->xOnKit;
+
+	uint8_t screenByteMasked = screen[kd->yOnScreenIdx][kd->xOnScreenIdx] & maskL(kd->xOnKit);
+
+	uint8_t newDispByte = screenByteMasked | yByteMasked;
 
 #if DEBUG
-	String fnewDispByte;
+	char fnewDispByte[9];
 	fbyte(newDispByte, fnewDispByte);
-	debug("-- First Kit (%d) -> data[%d][0] = 0x%02x, screen[%d][%d] = 0x%02x <- %s", kd->yOnKit, kd->yDataIdx, yByte,
-			kd->yOnScreenIdx, kd->xOnScreenIdx, dispByte, newDispByte);
+	char fyByte[9];
+	fbyte(data[kd->yDataIdx][0], fyByte);
+	debug("-- First Kit [%d,%d] -> data[%d][0] = %s, screen[%d][%d] = %s", kd->xOnKit, kd->yOnKit, kd->yDataIdx, fyByte,
+			kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
+
+	return newDispByte;
 }
 
-inline void Display::paintRow2Bytes(KitData *kd, uint8_t **data) {
-	uint8_t yByte = data[kd->yDataIdx][kd->xRelKit - 1];
+inline uint8_t Display::paintRow2Bytes(KitData *kd, uint8_t **data) {
+	uint8_t yByteLeft = data[kd->yDataIdx][kd->xRelKit - 1];
+	uint8_t yByteLeftMasked = yByteLeft << (KIT_DIM - kd->xOnFirstKit);
+
 	uint8_t yByteRight = data[kd->yDataIdx][kd->xRelKit];
-	uint8_t newDispByte =
+	uint8_t yByteRightMasked = yByteRight >> kd->xOnFirstKit;
+
+	uint8_t newDispByte = yByteLeftMasked | yByteRightMasked;
 
 #if DEBUG
-	debug("-- Kit 2 byte (%d) -> data[%d][%d] = 0x%02x, data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx,
-			kd->xRelKit - 1, yByte, kd->yDataIdx, kd->xRelKit, yByteRight);
+	char fnewDispByte[9];
+	fbyte(newDispByte, fnewDispByte);
+	char fyByte[9];
+	fbyte(yByteLeft, fyByte);
+	char fyByteRight[9];
+	fbyte(yByteRight, fyByteRight);
+	debug("-- Kit 2 byte [%d,%d] -> l-data[%d][%d] = %s, r-data[%d][%d] = %s, screen[%d][%d] = %s", kd->xOnKit,
+			kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, fyByte, kd->yDataIdx, kd->xRelKit, fyByteRight, kd->yOnScreenIdx,
+			kd->xOnScreenIdx, fnewDispByte);
 #endif
 
-	// TODO
+	return newDispByte;
 }
 
-inline void Display::paintRow1ByteOnLastKit(KitData *kd, uint8_t **data) {
+inline uint8_t Display::paintRowOnLastKit2Byte(KitData *kd, uint8_t **data) {
 	uint8_t yByte = data[kd->yDataIdx][kd->xRelKit - 1];
 #if DEBUG
 	debug("-- Kit 1 byte (%d) -> data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, yByte);
 #endif
 
 	// TODO
+	return 0;
+}
+
+inline uint8_t Display::paintRowOnLastKit1Byte(KitData *kd, uint8_t **data) {
+	uint8_t yByte = data[kd->yDataIdx][kd->xRelKit - 1];
+#if DEBUG
+	debug("-- Kit 1 byte (%d) -> data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, yByte);
+#endif
+
+	// TODO
+	return 0;
 }
 
 void Display::setupMax(uint8_t ss) {

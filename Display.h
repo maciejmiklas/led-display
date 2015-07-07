@@ -9,8 +9,8 @@
 
 /**
  * Dimension in pixels (LEDs) of LED-Matrix-Kit.
- * Currently #KIT_DIM is limited to 8, because pixel data is stored in byte array and we are assuming,
- * that one byte call fully cover one row on single LED-Kit.
+ * Currently #KIT_DIM is fixed to 8, because pixel data is stored in byte array and we are assuming,
+ * that one byte fully covers one row on single LED-Kit.
  */
 #define KIT_DIM 8
 
@@ -177,14 +177,14 @@ private:
 	 *  Vertical position of data is not shifted relatively to first kit
 	 *  data consists of 8 bit values and those align perfectly with 8 LED rows
 	 */
-	inline void paintRowOverlaps(KitData *kd, uint8_t **data);
-	inline void paintRowOnFirstKit(KitData *kd, uint8_t **data);
+	inline uint8_t paintRowOverlaps(KitData *kd, uint8_t **data);
+	inline uint8_t paintRowOnFirstKit(KitData *kd, uint8_t **data);
 
 	/**
 	 *  Vertical position on first kit is shifted, so we need two bytes of data to cover single row on one LED-Kit.
-	 *  This method will be used to paint row on middle kit and also on last kit.
+	 *  This method will be used to paint row on middle kit.
 	 */
-	inline void paintRow2Bytes(KitData *kd, uint8_t **data);
+	inline uint8_t paintRow2Bytes(KitData *kd, uint8_t **data);
 
 	/**
 	 *  This is exception to method using 2 bytes. On the last kit it might be sufficient to use only one byte to
@@ -204,7 +204,9 @@ private:
 	 *  on third kit: 0-3 -> uses 3 bits of second and 1 bit of third byte
 	 *  On the last kit we need 2 bytes.
 	 */
-	inline void paintRow1ByteOnLastKit(KitData *kd, uint8_t **data);
+	inline uint8_t paintRowOnLastKit1Byte(KitData *kd, uint8_t **data);
+
+	inline uint8_t paintRowOnLastKit2Byte(KitData *kd, uint8_t **data);
 };
 
 #endif /* DISPLAY_H_ */
