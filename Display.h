@@ -177,14 +177,16 @@ private:
 	 *  Vertical position of data is not shifted relatively to first kit
 	 *  data consists of 8 bit values and those align perfectly with 8 LED rows
 	 */
-	inline uint8_t paintRowOverlaps(KitData *kd, uint8_t **data);
-	inline uint8_t paintRowOnFirstKit(KitData *kd, uint8_t **data);
+	inline uint8_t overlapped_firstMidleKit(KitData *kd, uint8_t **data);
+	inline uint8_t overlapped_lastKit(KitData *kd, uint8_t **data);
+
+	inline uint8_t shifted_firstKit(KitData *kd, uint8_t **data);
 
 	/**
 	 *  Vertical position on first kit is shifted, so we need two bytes of data to cover single row on one LED-Kit.
 	 *  This method will be used to paint row on middle kit.
 	 */
-	inline uint8_t paintRow2Bytes(KitData *kd, uint8_t **data);
+	inline uint8_t shifted_middleKit(KitData *kd, uint8_t **data);
 
 	/**
 	 *  This is exception to method using 2 bytes. On the last kit it might be sufficient to use only one byte to
@@ -204,9 +206,9 @@ private:
 	 *  on third kit: 0-3 -> uses 3 bits of second and 1 bit of third byte
 	 *  On the last kit we need 2 bytes.
 	 */
-	inline uint8_t paintRowOnLastKit1Byte(KitData *kd, uint8_t **data);
+	inline uint8_t shifted_lastKit1Byte(KitData *kd, uint8_t **data);
 
-	inline uint8_t paintRowOnLastKit2Byte(KitData *kd, uint8_t **data);
+	inline uint8_t shifted_lastKit2Bytes(KitData *kd, uint8_t **data);
 };
 
 #endif /* DISPLAY_H_ */

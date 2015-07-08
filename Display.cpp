@@ -162,17 +162,27 @@ inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 	// go over rows on single LED-Kit
 	for (uint8_t yOnKit = 0; yOnKit < kd.yOnKitSize; yOnKit++) {
 		uint8_t newDispByte;
-		if (kd.xOnFirstKit == 0) {
-			newDispByte = paintRowOverlaps(&kd, data);
-		} else {
-			if (kd.xRelKit == 0) {
-				newDispByte = paintRowOnFirstKit(&kd, data);
+
+		if (kd.xOnFirstKit == 0) { // x position on first kit is not shifted
+			if (kd.xRelKit == kd.xRelKitSize - 1) {
+				newDispByte = overlapped_lastKit(&kd, data);
 			} else {
+				newDispByte = overlapped_firstMidleKit(&kd, data);
+			}
+		} else {
+
+			if (kd.xRelKit == 0) { // paint on first kit
+				newDispByte = shifted_firstKit(&kd, data);
+
+			} else if (kd.xRelKit == kd.xRelKitSize - 1) { // paint on last kit
 				if (kd.xRelKit < kd.xDataBytes) {
-					newDispByte = paintRow2Bytes(&kd, data);
+					newDispByte = shifted_lastKit2Bytes(&kd, data);
+
 				} else {
-					newDispByte = paintRowOnLastKit1Byte(&kd, data);
+					newDispByte = shifted_lastKit1Byte(&kd, data);
 				}
+			} else { // paint on middle kit
+				newDispByte = shifted_middleKit(&kd, data);
 			}
 		}
 		screen[kd.yOnScreenIdx][kd.xOnScreenIdx] = newDispByte;
@@ -182,18 +192,28 @@ inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 	}
 }
 
-inline uint8_t Display::paintRowOverlaps(KitData *kd, uint8_t **data) {
+inline uint8_t Display::overlapped_lastKit(KitData *kd, uint8_t **data) {
 	uint8_t yByte = data[kd->yDataIdx][kd->xKit];
 
 #if DEBUG
-	debug("-- Overlap (%d) -> data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx, kd->xKit, yByte);
+	debug("-- overlapped_lastKit (%d) -> data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx, kd->xKit, yByte);
+#endif
+
+	// TODO
+	return 0;
+}
+inline uint8_t Display::overlapped_firstMidleKit(KitData *kd, uint8_t **data) {
+	uint8_t yByte = data[kd->yDataIdx][kd->xKit];
+
+#if DEBUG
+	debug("-- overlapped_firstMidleKit (%d) -> data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx, kd->xKit, yByte);
 #endif
 
 	// TODO
 	return 0;
 }
 
-inline uint8_t Display::paintRowOnFirstKit(KitData *kd, uint8_t **data) {
+inline uint8_t Display::shifted_firstKit(KitData *kd, uint8_t **data) {
 	uint8_t yByte = data[kd->yDataIdx][0];
 	uint8_t yByteMasked = yByte >> kd->xOnKit;
 
@@ -204,16 +224,18 @@ inline uint8_t Display::paintRowOnFirstKit(KitData *kd, uint8_t **data) {
 #if DEBUG
 	char fnewDispByte[9];
 	fbyte(newDispByte, fnewDispByte);
+
 	char fyByte[9];
 	fbyte(data[kd->yDataIdx][0], fyByte);
-	debug("-- First Kit [%d,%d] -> data[%d][0] = %s, screen[%d][%d] = %s", kd->xOnKit, kd->yOnKit, kd->yDataIdx, fyByte,
-			kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
+
+	debug("-- shifted_firstKit [%d,%d] -> data[%d][0] = %s, screen[%d][%d] = %s", kd->xOnKit, kd->yOnKit, kd->yDataIdx,
+			fyByte, kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
 
 	return newDispByte;
 }
 
-inline uint8_t Display::paintRow2Bytes(KitData *kd, uint8_t **data) {
+inline uint8_t Display::shifted_middleKit(KitData *kd, uint8_t **data) {
 	uint8_t yByteLeft = data[kd->yDataIdx][kd->xRelKit - 1];
 	uint8_t yByteLeftMasked = yByteLeft << (KIT_DIM - kd->xOnFirstKit);
 
@@ -225,32 +247,55 @@ inline uint8_t Display::paintRow2Bytes(KitData *kd, uint8_t **data) {
 #if DEBUG
 	char fnewDispByte[9];
 	fbyte(newDispByte, fnewDispByte);
-	char fyByte[9];
-	fbyte(yByteLeft, fyByte);
+
+	char fyByteLeft[9];
+	fbyte(yByteLeft, fyByteLeft);
+
 	char fyByteRight[9];
 	fbyte(yByteRight, fyByteRight);
-	debug("-- Kit 2 byte [%d,%d] -> l-data[%d][%d] = %s, r-data[%d][%d] = %s, screen[%d][%d] = %s", kd->xOnKit,
-			kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, fyByte, kd->yDataIdx, kd->xRelKit, fyByteRight, kd->yOnScreenIdx,
-			kd->xOnScreenIdx, fnewDispByte);
+
+	debug("-- shifted_middleKit [%d,%d] -> l-data[%d][%d] = %s, r-data[%d][%d] = %s, screen[%d][%d] = %s", kd->xOnKit,
+			kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, fyByteLeft, kd->yDataIdx, kd->xRelKit, fyByteRight,
+			kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
 
 	return newDispByte;
 }
 
-inline uint8_t Display::paintRowOnLastKit2Byte(KitData *kd, uint8_t **data) {
-	uint8_t yByte = data[kd->yDataIdx][kd->xRelKit - 1];
+inline uint8_t Display::shifted_lastKit2Bytes(KitData *kd, uint8_t **data) {
+	uint8_t yByteLeft = data[kd->yDataIdx][kd->xRelKit - 1];
+	uint8_t yByteLeftMasked = yByteLeft << (KIT_DIM - kd->xOnFirstKit);
+
+	uint8_t yByteRight = data[kd->yDataIdx][kd->xRelKit];
+	uint8_t yByteRightMasked = (yByteRight >> kd->xOnFirstKit) & maskL(kd->xOnKitSize + 1);
+
+	uint8_t screenByte = screen[kd->yOnScreenIdx][kd->xOnScreenIdx];
+	uint8_t screenByteMasked = screenByte & maskR(KIT_DIM - kd->xOnKitSize);
+
+	uint8_t newDispByte = yByteLeftMasked | yByteRightMasked | screenByteMasked;
+
 #if DEBUG
-	debug("-- Kit 1 byte (%d) -> data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, yByte);
+	char fnewDispByte[9];
+	fbyte(newDispByte, fnewDispByte);
+
+	char fyByteLeft[9];
+	fbyte(yByteLeft, fyByteLeft);
+
+	char fyByteRight[9];
+	fbyte(yByteRight, fyByteRight);
+
+	debug("-- shifted_lastKit2Bytes [%d,%d] -> l-data[%d][%d] = %s, r-data[%d][%d] = %s, screen[%d][%d] = %s",
+			kd->xOnKit, kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, fyByteLeft, kd->yDataIdx, kd->xRelKit, fyByteRight,
+			kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
 
-	// TODO
-	return 0;
+	return newDispByte;
 }
 
-inline uint8_t Display::paintRowOnLastKit1Byte(KitData *kd, uint8_t **data) {
+inline uint8_t Display::shifted_lastKit1Byte(KitData *kd, uint8_t **data) {
 	uint8_t yByte = data[kd->yDataIdx][kd->xRelKit - 1];
 #if DEBUG
-	debug("-- Kit 1 byte (%d) -> data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, yByte);
+	debug("-- shifted_lastKit1Byte (%d) -> data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, yByte);
 #endif
 
 	// TODO
