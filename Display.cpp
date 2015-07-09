@@ -72,10 +72,10 @@ inline uint8_t Display::calcEndKit(uint8_t xy, uint8_t wh, uint8_t yxKits) {
 inline uint8_t Display::calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uint8_t xyOnKit, uint8_t startKitXY,
 		uint8_t endKitXY) {
 	uint8_t widthOnKit = 0;
-	if (xyKit == startKitXY) {
+	if (xyKit == startKitXY) { // first kit
 		widthOnKit = min(wh, KIT_DIM - xyOnKit);
 
-	} else if (xyKit == endKitXY) {
+	} else if (xyKit == endKitXY) { // last kit
 		widthOnKit = (xy + wh) % KIT_DIM;
 	}
 	// happens for xKit == endKitX and all pixels enabled (data byte = 0xFF) - in this case % gives 0
@@ -88,7 +88,7 @@ inline uint8_t Display::calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uin
 
 void Display::paint(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **data) {
 #if DEBUG
-	debug("Print pixels: p[%d,%d] -> %dx%d", x, y, width, height);
+	debug("Paint pixels: p[%d,%d] -> %dx%d", x, y, width, height);
 #endif
 
 	// find starting 8x8-Matrix, begins with 0
@@ -155,7 +155,7 @@ void Display::paint(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t
 inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 	uint8_t ssKit = ss[kd.xKit][kd.yKit];
 #if DEBUG
-	debug("Print on kit(%d): k[%d,%d], kr[%d,%d] -> %dx%d, p[%d,%d] -> %dx%d", ssKit, kd.xKit, kd.yKit, kd.xRelKit,
+	debug("Paint on kit(%d): k[%d,%d], kr[%d,%d] -> %dx%d, p[%d,%d] -> %dx%d", ssKit, kd.xKit, kd.yKit, kd.xRelKit,
 			kd.yRelKit, kd.xRelKitSize, kd.yRelKitSize, kd.xOnKit, kd.yOnKit, kd.xOnKitSize, kd.yOnKitSize);
 #endif
 
@@ -267,7 +267,7 @@ inline uint8_t Display::shifted_lastKit2Bytes(KitData *kd, uint8_t **data) {
 	uint8_t yByteLeftMasked = yByteLeft << (KIT_DIM - kd->xOnFirstKit);
 
 	uint8_t yByteRight = data[kd->yDataIdx][kd->xRelKit];
-	uint8_t yByteRightMasked = (yByteRight >> kd->xOnFirstKit) & maskL(kd->xOnKitSize + 1);
+	uint8_t yByteRightMasked = (yByteRight >> kd->xOnFirstKit) & maskL(kd->xOnKitSize);
 
 	uint8_t screenByte = screen[kd->yOnScreenIdx][kd->xOnScreenIdx];
 	uint8_t screenByteMasked = screenByte & maskR(KIT_DIM - kd->xOnKitSize);
@@ -293,13 +293,27 @@ inline uint8_t Display::shifted_lastKit2Bytes(KitData *kd, uint8_t **data) {
 }
 
 inline uint8_t Display::shifted_lastKit1Byte(KitData *kd, uint8_t **data) {
+	uint8_t screenBits = KIT_DIM - kd->xOnFirstKit;
 	uint8_t yByte = data[kd->yDataIdx][kd->xRelKit - 1];
+	uint8_t yByteMasked = yByte << screenBits;
+
+	uint8_t screenByte = screen[kd->yOnScreenIdx][kd->xOnScreenIdx];
+	uint8_t screenByteMasked = screenByte & maskR(screenBits);
+
+	uint8_t newDispByte = screenByteMasked | yByteMasked;
+
 #if DEBUG
-	debug("-- shifted_lastKit1Byte (%d) -> data[%d][%d] = 0x%02x", kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, yByte);
+	char fnewDispByte[9];
+	fbyte(newDispByte, fnewDispByte);
+
+	char fyByte[9];
+	fbyte(data[kd->yDataIdx][0], fyByte);
+
+	debug("-- shifted_lastKit1Byte [%d,%d] -> data[%d][0] = %s, screen[%d][%d] = %s", kd->xOnKit, kd->yOnKit,
+			kd->yDataIdx, fyByte, kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
 
-	// TODO
-	return 0;
+	return newDispByte;
 }
 
 void Display::setupMax(uint8_t ss) {
