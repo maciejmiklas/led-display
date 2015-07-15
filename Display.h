@@ -177,7 +177,7 @@ private:
 	 *  Vertical position of data is not shifted relatively to first kit
 	 *  data consists of 8 bit values and those align perfectly with 8 LED rows
 	 */
-	inline uint8_t overlapped_firstMidleKit(KitData *kd, uint8_t **data);
+	inline uint8_t overlapped_firstAndMidleKit(KitData *kd, uint8_t **data);
 	inline uint8_t overlapped_lastKit(KitData *kd, uint8_t **data);
 
 	inline uint8_t shifted_firstKit(KitData *kd, uint8_t **data);
