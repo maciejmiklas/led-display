@@ -183,7 +183,7 @@ private:
 
 	/**
 	 *  This is exception to method using 2 bytes. On the last kit it might be sufficient to use only one byte to
-	 *  print single row, because width limits amount of pixel within row.
+	 *  print single row, because #width limits amount of pixel within row.
 	 *
 	 *  For example: we have 3 LED-Kits in vertical position, width set to 15, and y start position set to 3.
 	 *  In this case we will set flowing bits:
