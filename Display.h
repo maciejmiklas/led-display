@@ -21,11 +21,11 @@
  * Each LED represents single pixel, and it's placed on (x,y) position. Left top corner has (0,0) and bottom right
  * (max width-1, max height-1) - in our example above it's (63,39).
  *
- * Each 8x8-LED-Kit is connected to MAX7219. All chips share common MOSI and SCK lines, MISO is not used.
+ * Each 8x8-LED-Kit is driven by MAX7219. All chips share common MOSI and SCK lines, MISO is not used.
  * Each chip requires separate Slave Select line.
  *
  * Display orientation:
- * (0,0) -----------------------------> [x]
+ * (0,0) -----------------------------> (x)
  *      |
  *      |
  *      |
@@ -33,7 +33,7 @@
  *      |
  *      |
  *      |                            (x max, y max)
- *      v [y]
+ *      v (y)
  *
  * Pixels on Display consisting of 4x5 LED-Kits
  *
@@ -49,26 +49,26 @@ class Display {
 public:
 
 	/**
-	 * #ss contains Select Slave lines for 8x8-LED-Kits, The first coordinate in table points horizontal
+	 * #ss contains Select Slave lines for 8x8-LED-Kits, The first coordinate in table indicates horizontal
 	 * position, second vertical: ss[horizontal][vertical].
 	 */
 	Display(uint8_t xKits, uint8_t yKits, uint8_t **ss);
 
 	/**
-	 * Prints given matrix on the display starting at pixel on [x,y] position.
-	 * Matrix dimension in pixels is given by #width and #height. It can exceed display size, in this case it will
-	 * be trimmed.
+	 * Paints given matrix on the display starting at pixel on (x,y) position - this position is relative to top left
+	 * corner of whole display.
+	 * Matrix dimension in pixels is given by #width and #height. This gives us a following rectangle:
+	 * (x,y)-(#width-1,#height-1).
 	 *
-	 * Matrix data is stored in two dimensional array of bytes, where single bit represents one pixel.
-	 * First position in #data array indicates row, second pixels within this row: #data[y][x]. Each byte contains
-	 * 8 pixels. For example: structure consisting of 5 rows and 14 pixels per row has dimension: data[5][2] - we need
-	 * two bytes per row to express 14 pixels. Also second byte of each row uses only first 6 bits -> 8 + 6 = 14
+	 * Painted data can exceed display size, in this case it will be trimmed.
 	 *
-	 * Data array starts from 0 and given [y,x] is inclusive. #width and #height gives amount of pixels on x
-	 * and y axis. This gives us a rectangle with position: [x,y]-[#width-1,#height-1]
+	 * Matrix data is stored in two dimensional array of bytes (#data), where single bit represents one pixel.
+	 * First position in #data array indicates row, second represents pixels within this row: #data[y][x]. Each byte
+	 * contains 8 pixels. For example: structure consisting of 5 rows and 14 pixels per row has dimension: data[5][2] -
+	 * we need two bytes per row to express 14 pixels. Also second byte of each row uses only first 6 bits -> 8 + 6 = 14
 	 *
-	 * For example, matrix consisting of 3x2 bytes has maximal dimension 24(3*8) on 16(2*8) pixels,
-	 * which gives us a 384 pixels in total.
+	 * For example, matrix consisting of 3x2 bytes has maximal dimension 16(2*8) x 3 pixels,
+	 * which gives us a 48 pixels in total. We have 3 rows, each one has two bytes.
 	 */
 	void paint(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **data);
 
@@ -82,12 +82,6 @@ private:
 	 */
 	uint8_t **ss;
 
-	/**
-	 * Screen buffer containing current content of the screen. Orientation: sbuf[xKits][yKits] -
-	 * first dimension represents column (x), second row within particular column (y) - like in The Marix ;)
-	 */
-	uint8_t **sbuf;
-
 	/** Horizontal amount of 8x8-Matrices, known as Kits */
 	uint8_t xKits;
 
@@ -95,19 +89,30 @@ private:
 	uint8_t yKits;
 
 	/**
-	 * Contains data for each LED-Kit. Painting procedure goes over all kits and KitData will be actualized
-	 * for each Kit.
+	 * It's a two dimensional array containing pixels for LED-Kits. Each LED-Kit has embedded memory, but we need to
+	 * keep pixel state in RAM in order to calculate row value for case when more then one sprite has to be displayed
+	 * on single LED-Kit.
+	 * Print method displays single sprite that eventually crosses few LED-Kits, we have only to set pixels for this
+	 * sprite without affecting it direct neighbors. We have to calculate byte (row has 8 pixels) for single row on
+	 * particular kit that contains pixels for already painted sprite and from new one.
 	 *
-	 * Variables ending with underscore MUST NOT be modified outside #paint() function
+	 * First dimension in display data indicates row, second kit. For example #displayRAM[2][3] indicates
+	 * 3rd row on 4th kit (starting form 0).
+	 */
+	uint8_t **screen;
+
+	/**
+	 * Contains data for each LED-Kit. Painting procedure goes over all kits and KitData will get recalculated
+	 * for each Kit.
 	 */
 	typedef struct {
-		// all [x,y] coordinates starting from 0 and are inclusive.
+		// all (x,y) coordinates are starting from 0 and are inclusive.
 
 		/** starting pixels on first LED-Kit */
 		uint8_t xOnFirstKit;
 		uint8_t yOnFirstKit;
 
-		/** [x,y] position starting from first Kit that we are panting on. */
+		/** (x,y) position starting from first Kit that we are panting on. */
 		uint8_t xRelKit;
 		uint8_t yRelKit;
 
@@ -121,11 +126,11 @@ private:
 		 */
 		uint8_t xDataBytes;
 
-		/** [x,y] Kit position starting from first Kit in LED-Kit-Matrix. */
+		/** (x,y) Kit position starting from first Kit in LED-Kit-Matrix. */
 		uint8_t xKit;
 		uint8_t yKit;
 
-		/** [x,y] position on kit that we are painting on. */
+		/** (x,y) position on kit that we are painting on. */
 		uint8_t xOnKit;
 		uint8_t yOnKit;
 
@@ -133,7 +138,7 @@ private:
 		uint8_t xOnKitSize;
 		uint8_t yOnKitSize;
 
-		/** [x,y] for #screen[y,x]  */
+		/** (x,y) for #screen[y,x]  */
 		uint8_t xOnScreenIdx;
 		uint8_t yOnScreenIdx;
 
@@ -141,44 +146,32 @@ private:
 		uint8_t yDataIdx;
 	} KitData;
 
-	/**
-	 * Two dimensional array containing pixels for LED-Kits. Each LED-Kit hat embedded memory, but we need to keep pixel
-	 * state in RAM in order to calculate row value for case when more the one sprite has to be displayed on single
-	 * LED-Kit.
-	 * Print method displays single sprite and it crosses few LED-Kits, we have only to set pixels for this sprite
-	 * without affecting other spites, so we have to calculate byte for single row that contains pixels for already
-	 * painted sprite and from new one.
-	 *
-	 * First dimension in display data indicates row, second kit. For example #displayRAM[2][3] indicates
-	 * 3rd row on 4th kit.
-	 */
-	uint8_t **screen;
-
 	void setupMax();
 	void setupMax(uint8_t ss);
 	void setupSpi();
 	void send(uint8_t ss, uint8_t address, uint8_t value);
 	void clearKit(uint8_t ss);
 
-	/** reduce width/height so it fits on the screen */
+	/** reduces width/height so it fits on the screen */
 	inline uint8_t limitSize(uint8_t xy, uint8_t wh, uint8_t startKitXY, uint8_t endKitXY);
 
-	/** find ending 8x8-Matrix - inclusive */
+	/** finds ending 8x8-Matrix - inclusive */
 	inline uint8_t calcEndKit(uint8_t xy, uint8_t wh, uint8_t yxKits);
 
-	/** calculate width/height within current kit */
+	/** calculates width/height within current kit */
 	inline uint8_t calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uint8_t xyOnKit, uint8_t startKitXY,
 			uint8_t endKitXY);
 
-	/** Pass kd by reference, because values will get modified inside function */
+	/** Passes kd by reference, because values will get modified inside function */
 	inline void paintOnKit(KitData kd, uint8_t **data);
 
-	/**
-	 *  Vertical position of data is not shifted relatively to first kit
-	 *  data consists of 8 bit values and those align perfectly with 8 LED rows
-	 */
+	// overlapped_xxx -> vertical position of data is not shifted relatively to first kit data consists of 8 bit
+	// values and those align perfectly with 8 LED rows
+
 	inline uint8_t overlapped_firstAndMidleKit(KitData *kd, uint8_t **data);
 	inline uint8_t overlapped_lastKit(KitData *kd, uint8_t **data);
+
+	// shifted_xxx -> vertical position of data IS shifted relatively to first kit
 
 	inline uint8_t shifted_firstKit(KitData *kd, uint8_t **data);
 

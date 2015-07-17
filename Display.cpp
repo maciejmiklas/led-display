@@ -21,13 +21,6 @@ Display::Display(uint8_t xKits, uint8_t yKits, uint8_t **ss) {
 	this->yKits = yKits;
 	this->ss = ss;
 
-	// initialize screen buffer
-	this->sbuf = new uint8_t*[xKits];
-	for (int x = 0; x < xKits; x++) {
-		this->sbuf[x] = new uint8_t[yKits];
-		memset(this->sbuf[x], 0x00, sizeof(this->sbuf[x]));
-	}
-
 	// init screen buffer
 	uint8_t rows = yKits * KIT_DIM;
 	screen = new uint8_t*[rows];
