@@ -6,6 +6,7 @@
 #include "Log.h"
 
 #define DEBUG true
+#define SIMULATE true
 
 /**
  * Dimension in pixels (LEDs) of LED-Matrix-Kit.

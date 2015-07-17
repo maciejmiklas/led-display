@@ -327,22 +327,25 @@ inline uint8_t Display::shifted_lastKit1Byte(KitData *kd, uint8_t **data) {
 }
 
 void Display::setupMax(uint8_t ss) {
+#if SIMULATE
+	return;
+#endif
+
 #if DEBUG
 	debug("Configuring MAX7219 on SS: %d", ss);
 #endif
-	/*
-	 pinMode(ss, OUTPUT);
 
-	 // disable shutdown mode
-	 send(ss, REG_SHUTDOWN, 1);
+	pinMode(ss, OUTPUT);
 
-	 // display test
-	 send(ss, REG_DISPLAYTEST, 0);
+	// disable shutdown mode
+	send(ss, REG_SHUTDOWN, 1);
 
-	 send(ss, REG_INTENSITY, 15);  // character intensity: range: 0 to 15
-	 send(ss, REG_SCANLIMIT, 7);   // show all 8 digits
-	 send(ss, REG_DECODEMODE, 0);  // using an led matrix (not digits)
-	 */
+	// display test
+	send(ss, REG_DISPLAYTEST, 0);
+
+	send(ss, REG_INTENSITY, 15);  // character intensity: range: 0 to 15
+	send(ss, REG_SCANLIMIT, 7);   // show all 8 digits
+	send(ss, REG_DECODEMODE, 0);  // using an led matrix (not digits)
 }
 
 void Display::clearKit(uint8_t ss) {
@@ -358,21 +361,23 @@ void Display::clearKit(uint8_t ss) {
 
 /* Transfers data to a MAX7219. */
 void Display::send(uint8_t ss, uint8_t address, uint8_t data) {
-	/*
-	 #if DEBUG
-	 debug("Send(%d): %d = 0x%02x", ss, address, data);
-	 #endif
+#if SIMULATE
+	return;
+#endif
+#if DEBUG
+	debug("Send(%d): %d = 0x%02x", ss, address, data);
+#endif
 
-	 // Ensure LOAD/CS is LOW
-	 digitalWrite(ss, LOW);
+	// Ensure LOAD/CS is LOW
+	digitalWrite(ss, LOW);
 
-	 // Send the register address
-	 SPI.transfer(address);
+	// Send the register address
+	SPI.transfer(address);
 
-	 // Send the value
-	 SPI.transfer(data);
+	// Send the value
+	SPI.transfer(data);
 
-	 // Tell chip to load in data
-	 digitalWrite(ss, HIGH);
-	 */
+	// Tell chip to load in data
+	digitalWrite(ss, HIGH);
+
 }
