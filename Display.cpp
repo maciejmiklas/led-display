@@ -1,38 +1,22 @@
 #include "Display.h"
 
-// max7219 registers
-#define REG_NOOP         0x0
-#define REG_DIGIT0       0x1
-#define REG_DIGIT1       0x2
-#define REG_DIGIT2       0x3
-#define REG_DIGIT3       0x4
-#define REG_DIGIT4       0x5
-#define REG_DIGIT5       0x6
-#define REG_DIGIT6       0x7
-#define REG_DIGIT7       0x8
-#define REG_DECODEMODE   0x9
-#define REG_INTENSITY    0xA
-#define REG_SCANLIMIT    0xB
-#define REG_SHUTDOWN     0xC
-#define REG_DISPLAYTEST  0xF
-
-Display::Display(uint8_t xKits, uint8_t yKits, uint8_t **ss) {
+Display::Display(kit xKits, kit yKits, ssLine **ss) {
 	this->xKits = xKits;
 	this->yKits = yKits;
 	this->ss = ss;
 
 	// init screen buffer
 	uint8_t rows = yKits * KIT_DIM;
-	screen = new uint8_t*[rows];
-	for (uint8_t y = 0; y < rows; y++) {
-		screen[y] = new uint8_t[xKits];
-		for (uint8_t x = 0; x < xKits; x++) {
-			screen[y][x] = 0x0;
-		}
-	}
+	screen = init2DArray8(rows, xKits);
+
 #if DEBUG
 	debug("Created display with %dx%d LED-Kits", xKits, yKits);
 #endif
+}
+
+Display::~Display() {
+	uint8_t rows = yKits * KIT_DIM;
+	delete2DArray(screen, rows, xKits);
 }
 
 void Display::setup() {
@@ -54,16 +38,15 @@ void Display::setupMax() {
 	}
 }
 
-inline uint8_t Display::limitSize(uint8_t xy, uint8_t wh, uint8_t startKitXY, uint8_t endKitXY) {
+inline pixel Display::limitSize(pixel xy, pixel wh, kit startKitXY, kit endKitXY) {
 	return min(wh, (endKitXY - startKitXY + 1) * KIT_DIM - xy % KIT_DIM);
 }
 
-inline uint8_t Display::calcEndKit(uint8_t xy, uint8_t wh, uint8_t yxKits) {
+inline kit Display::calcEndKit(pixel xy, pixel wh, kit yxKits) {
 	return min(((xy + wh - 1) / KIT_DIM), yxKits - 1);
 }
 
-inline uint8_t Display::calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uint8_t xyOnKit, uint8_t startKitXY,
-		uint8_t endKitXY) {
+inline pixel Display::calcSizeOnKit(pixel xy, pixel wh, kit xyKit, kit xyOnKit, kit startKitXY, kit endKitXY) {
 	uint8_t widthOnKit = 0;
 	if (xyKit == startKitXY) { // first kit
 		widthOnKit = min(wh, KIT_DIM - xyOnKit);
@@ -79,20 +62,20 @@ inline uint8_t Display::calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uin
 	return widthOnKit;
 }
 
-void Display::paint(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **data) {
+void Display::paint(pixel x, pixel y, pixel width, pixel height, uint8_t **data) {
 #if DEBUG
 	debug("Paint pixels: p[%d,%d] -> %dx%d", x, y, width, height);
 #endif
 
 	// find starting 8x8-Matrix, begins with 0
-	uint8_t startKitX = x / KIT_DIM;
-	uint8_t startKitY = y / KIT_DIM;
+	kit startKitX = x / KIT_DIM;
+	kit startKitY = y / KIT_DIM;
 
-	uint8_t endKitX = calcEndKit(x, width, xKits);
-	uint8_t endKitY = calcEndKit(y, height, yKits);
+	kit endKitX = calcEndKit(x, width, xKits);
+	kit endKitY = calcEndKit(y, height, yKits);
 
-	uint8_t widthLim = limitSize(x, width, startKitX, endKitX);
-	uint8_t heightLim = limitSize(y, height, startKitY, endKitY);
+	pixel widthLim = limitSize(x, width, startKitX, endKitX);
+	pixel heightLim = limitSize(y, height, startKitY, endKitY);
 
 #if DEBUG
 	debug("Using kits: k[%d,%d] - k[%d,%d] with pixel w/h: %dx%d", startKitX, startKitY, endKitX, endKitY, widthLim,
@@ -153,7 +136,7 @@ inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 #endif
 
 	// go over rows on single LED-Kit
-	for (uint8_t yOnKit = 0; yOnKit < kd.yOnKitSize; yOnKit++) {
+	for (pixel yOnKit = 0; yOnKit < kd.yOnKitSize; yOnKit++) {
 		uint8_t newDispByte;
 
 		if (kd.xOnFirstKit == 0) { // x position on first kit is not shifted
@@ -326,7 +309,7 @@ inline uint8_t Display::shifted_lastKit1Byte(KitData *kd, uint8_t **data) {
 	return newDispByte;
 }
 
-void Display::setupMax(uint8_t ss) {
+void Display::setupMax(ssLine ss) {
 #if SIMULATE
 	return;
 #endif
@@ -348,7 +331,7 @@ void Display::setupMax(uint8_t ss) {
 	send(ss, REG_DECODEMODE, 0);  // using an led matrix (not digits)
 }
 
-void Display::clearKit(uint8_t ss) {
+void Display::clearKit(ssLine ss) {
 	send(ss, REG_DIGIT0, 0);
 	send(ss, REG_DIGIT1, 0);
 	send(ss, REG_DIGIT2, 0);
@@ -360,7 +343,7 @@ void Display::clearKit(uint8_t ss) {
 }
 
 /* Transfers data to a MAX7219. */
-void Display::send(uint8_t ss, uint8_t address, uint8_t data) {
+void Display::send(ssLine ss, uint8_t address, uint8_t data) {
 #if SIMULATE
 	return;
 #endif

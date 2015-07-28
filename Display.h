@@ -8,12 +8,38 @@
 #define DEBUG true
 #define SIMULATE true
 
+/** One pixel - single LED. */
+typedef uint8_t pixel;
+
+/** One LED-Kit - 8x8 LED Matrix. */
+typedef uint8_t kit;
+
+/** Slave Select line for max7219. */
+typedef uint8_t ssLine;
+
 /**
  * Dimension in pixels (LEDs) of LED-Matrix-Kit.
  * Currently #KIT_DIM is fixed to 8, because pixel data is stored in byte array and we are assuming,
  * that one byte fully covers one row on single LED-Kit.
  */
 #define KIT_DIM 8
+
+
+// max7219 registers
+#define REG_NOOP         0x0
+#define REG_DIGIT0       0x1
+#define REG_DIGIT1       0x2
+#define REG_DIGIT2       0x3
+#define REG_DIGIT3       0x4
+#define REG_DIGIT4       0x5
+#define REG_DIGIT5       0x6
+#define REG_DIGIT6       0x7
+#define REG_DIGIT7       0x8
+#define REG_DECODEMODE   0x9
+#define REG_INTENSITY    0xA
+#define REG_SCANLIMIT    0xB
+#define REG_SHUTDOWN     0xC
+#define REG_DISPLAYTEST  0xF
 
 /**
  * Display consist of a matrix of 8x8-LED-Kits. For example putting 8x5 kits together will build
@@ -51,9 +77,12 @@ public:
 
 	/**
 	 * #ss contains Select Slave lines for 8x8-LED-Kits, The first coordinate in table indicates horizontal
-	 * position, second vertical: ss[horizontal][vertical].
+	 * position, second vertical: #ss[horizontal][vertical], this gives us dimensions:
+	 * #ss[0][0] -> ss[xKits-1][yKits-1]
 	 */
-	Display(uint8_t xKits, uint8_t yKits, uint8_t **ss);
+	Display(kit xKits, kit yKits, ssLine **ss);
+
+	~Display();
 
 	/**
 	 * Paints given matrix on the display starting at pixel on (x,y) position - this position is relative to top left
@@ -68,10 +97,12 @@ public:
 	 * contains 8 pixels. For example: structure consisting of 5 rows and 14 pixels per row has dimension: data[5][2] -
 	 * we need two bytes per row to express 14 pixels. Also second byte of each row uses only first 6 bits -> 8 + 6 = 14
 	 *
+	 * Size of #data: #data[0][0] - #data[#height-1][#width/8]
+	 *
 	 * For example, matrix consisting of 3x2 bytes has maximal dimension 16(2*8) x 3 pixels,
 	 * which gives us a 48 pixels in total. We have 3 rows, each one has two bytes.
 	 */
-	void paint(uint8_t x, uint8_t y, uint8_t width, uint8_t height, uint8_t **data);
+	void paint(pixel x, pixel y, pixel width, pixel height, uint8_t **data);
 
 	/** Initialized SPI and 8x8-Matrix elements. */
 	void setup();
@@ -81,13 +112,13 @@ private:
 	 * Slave Select lines reflecting positions of 8x8-Matrices on the Displays.
 	 * It has the same orientation as #sbuf
 	 */
-	uint8_t **ss;
+	ssLine **ss;
 
 	/** Horizontal amount of 8x8-Matrices, known as Kits */
-	uint8_t xKits;
+	kit xKits;
 
 	/** Vertical amount of 8x8-Matrices */
-	uint8_t yKits;
+	kit yKits;
 
 	/**
 	 * It's a two dimensional array containing pixels for LED-Kits. Each LED-Kit has embedded memory, but we need to
@@ -110,16 +141,16 @@ private:
 		// all (x,y) coordinates are starting from 0 and are inclusive.
 
 		/** starting pixels on first LED-Kit */
-		uint8_t xOnFirstKit;
-		uint8_t yOnFirstKit;
+		pixel xOnFirstKit;
+		pixel yOnFirstKit;
 
 		/** (x,y) position starting from first Kit that we are panting on. */
-		uint8_t xRelKit;
-		uint8_t yRelKit;
+		kit xRelKit;
+		kit yRelKit;
 
 		/** Amount of LED-Kits used for painting */
-		uint8_t xRelKitSize;
-		uint8_t yRelKitSize;
+		kit xRelKitSize;
+		kit yRelKitSize;
 
 		/**
 		 * Amount of bytes from #data containing pixels for x-axis (vertical) - second argument of #data[y][x].
@@ -128,16 +159,16 @@ private:
 		uint8_t xDataBytes;
 
 		/** (x,y) Kit position starting from first Kit in LED-Kit-Matrix. */
-		uint8_t xKit;
-		uint8_t yKit;
+		kit xKit;
+		kit yKit;
 
 		/** (x,y) position on kit that we are painting on. */
-		uint8_t xOnKit;
-		uint8_t yOnKit;
+		pixel xOnKit;
+		pixel yOnKit;
 
 		/** dimensions on kit that we are painting on. */
-		uint8_t xOnKitSize;
-		uint8_t yOnKitSize;
+		pixel xOnKitSize;
+		pixel yOnKitSize;
 
 		/** (x,y) for #screen[y,x]  */
 		uint8_t xOnScreenIdx;
@@ -148,20 +179,20 @@ private:
 	} KitData;
 
 	void setupMax();
-	void setupMax(uint8_t ss);
+	void setupMax(ssLine ss);
 	void setupSpi();
-	void send(uint8_t ss, uint8_t address, uint8_t value);
-	void clearKit(uint8_t ss);
+	void send(ssLine ss, uint8_t address, uint8_t value);
+	void clearKit(ssLine ss);
 
 	/** reduces width/height so it fits on the screen */
-	inline uint8_t limitSize(uint8_t xy, uint8_t wh, uint8_t startKitXY, uint8_t endKitXY);
+	inline pixel limitSize(pixel xy, pixel wh, kit startKitXY, kit endKitXY);
 
 	/** finds ending 8x8-Matrix - inclusive */
-	inline uint8_t calcEndKit(uint8_t xy, uint8_t wh, uint8_t yxKits);
+	inline kit calcEndKit(pixel xy, pixel wh, kit yxKits);
 
 	/** calculates width/height within current kit */
-	inline uint8_t calcSizeOnKit(uint8_t xy, uint8_t wh, uint8_t xyKit, uint8_t xyOnKit, uint8_t startKitXY,
-			uint8_t endKitXY);
+	inline pixel calcSizeOnKit(pixel xy, pixel wh, kit xyKit, kit xyOnKit, kit startKitXY,
+			kit endKitXY);
 
 	/** Passes kd by reference, because values will get modified inside function */
 	inline void paintOnKit(KitData kd, uint8_t **data);
