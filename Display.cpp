@@ -25,12 +25,18 @@ void Display::setup() {
 }
 
 void Display::setupSpi() {
+#if SIMULATE
+	return;
+#endif
 	SPI.begin();
 	SPI.setDataMode(SPI_MODE3);
 	SPI.setClockDivider(SPI_CLOCK_DIV128);
 }
 
 void Display::setupMax() {
+#if SIMULATE
+	return;
+#endif
 	for (uint8_t ssY = 0; ssY < yKits; ssY++) {
 		for (uint8_t ssX = 0; ssX < xKits; ssX++) {
 			setupMax(ss[ssX][ssY]);
@@ -310,10 +316,6 @@ inline uint8_t Display::shifted_lastKit1Byte(KitData *kd, uint8_t **data) {
 }
 
 void Display::setupMax(ssLine ss) {
-#if SIMULATE
-	return;
-#endif
-
 #if DEBUG
 	debug("Configuring MAX7219 on SS: %d", ss);
 #endif
