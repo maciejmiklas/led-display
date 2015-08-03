@@ -22,24 +22,23 @@ typedef uint8_t ssLine;
  * Currently #KIT_DIM is fixed to 8, because pixel data is stored in byte array and we are assuming,
  * that one byte fully covers one row on single LED-Kit.
  */
-#define KIT_DIM 8
-
+const uint8_t KIT_DIM = 8;
 
 // max7219 registers
-#define REG_NOOP         0x0
-#define REG_DIGIT0       0x1
-#define REG_DIGIT1       0x2
-#define REG_DIGIT2       0x3
-#define REG_DIGIT3       0x4
-#define REG_DIGIT4       0x5
-#define REG_DIGIT5       0x6
-#define REG_DIGIT6       0x7
-#define REG_DIGIT7       0x8
-#define REG_DECODEMODE   0x9
-#define REG_INTENSITY    0xA
-#define REG_SCANLIMIT    0xB
-#define REG_SHUTDOWN     0xC
-#define REG_DISPLAYTEST  0xF
+const uint8_t REG_NOOP = 0x0;
+const uint8_t REG_DIGIT0 = 0x1;
+const uint8_t REG_DIGIT1 = 0x2;
+const uint8_t REG_DIGIT2 = 0x3;
+const uint8_t REG_DIGIT3 = 0x4;
+const uint8_t REG_DIGIT4 = 0x5;
+const uint8_t REG_DIGIT5 = 0x6;
+const uint8_t REG_DIGIT6 = 0x7;
+const uint8_t REG_DIGIT7 = 0x8;
+const uint8_t REG_DECODEMODE = 0x9;
+const uint8_t REG_INTENSITY = 0xA;
+const uint8_t REG_SCANLIMIT = 0xB;
+const uint8_t REG_SHUTDOWN = 0xC;
+const uint8_t REG_DISPLAYTEST = 0xF;
 
 /**
  * Display consist of a matrix of 8x8-LED-Kits. For example putting 8x5 kits together will build
@@ -191,8 +190,7 @@ private:
 	inline kit calcEndKit(pixel xy, pixel wh, kit yxKits);
 
 	/** calculates width/height within current kit */
-	inline pixel calcSizeOnKit(pixel xy, pixel wh, kit xyKit, kit xyOnKit, kit startKitXY,
-			kit endKitXY);
+	inline pixel calcSizeOnKit(pixel xy, pixel wh, kit xyKit, kit xyOnKit, kit startKitXY, kit endKitXY);
 
 	/** Passes kd by reference, because values will get modified inside function */
 	inline void paintOnKit(KitData kd, uint8_t **data);

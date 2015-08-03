@@ -10,6 +10,6 @@
  */
 #define FONT_ASCI_SIZE 128
 
-extern uint8_t FONT_ASCI[FONT_ASCI_SIZE][8];
+extern const uint8_t FONT_ASCI[FONT_ASCI_SIZE][8];
 
 #endif /* FONT8x8_H_ */
