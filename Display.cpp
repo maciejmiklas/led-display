@@ -9,8 +9,8 @@ Display::Display(kit xKits, kit yKits, ssLine **ss) {
 	uint8_t rows = yKits * KIT_DIM;
 	//screen = init2DArray8(rows, xKits);
 
-#if DEBUG
-	debug("Created display with %dx%d LED-Kits and %d bytes screen buffer", xKits, yKits, (rows * xKits));
+#if DEBUG_DI
+	debug(F("Created display with %dx%d LED-Kits and %d bytes screen buffer"), xKits, yKits, (rows * xKits));
 #endif
 }
 
@@ -25,7 +25,7 @@ void Display::setup() {
 }
 
 void Display::setupSpi() {
-#if SIMULATE
+#if SIMULATE_DI
 	return;
 #endif
 	SPI.begin();
@@ -34,7 +34,7 @@ void Display::setupSpi() {
 }
 
 void Display::setupMax() {
-#if SIMULATE
+#if SIMULATE_DI
 	return;
 #endif
 	for (uint8_t ssY = 0; ssY < yKits; ssY++) {
@@ -69,8 +69,8 @@ inline pixel Display::calcSizeOnKit(pixel xy, pixel wh, kit xyKit, kit xyOnKit, 
 }
 
 void Display::paint(pixel x, pixel y, pixel width, pixel height, uint8_t **data) {
-#if DEBUG
-	debug("Paint pixels: p[%d,%d] -> %dx%d", x, y, width, height);
+#if DEBUG_DI
+	debug(F("Paint pixels: p[%d,%d] -> %dx%d"), x, y, width, height);
 #endif
 
 	// find starting 8x8-Matrix, begins with 0
@@ -83,8 +83,8 @@ void Display::paint(pixel x, pixel y, pixel width, pixel height, uint8_t **data)
 	pixel widthLim = limitSize(x, width, startKitX, endKitX);
 	pixel heightLim = limitSize(y, height, startKitY, endKitY);
 
-#if DEBUG
-	debug("Using kits: k[%d,%d] - k[%d,%d] with pixel w/h: %dx%d", startKitX, startKitY, endKitX, endKitY, widthLim,
+#if DEBUG_DI
+	debug(F("Using kits: k[%d,%d] - k[%d,%d] with pixel w/h: %dx%d"), startKitX, startKitY, endKitX, endKitY, widthLim,
 			heightLim);
 #endif
 
@@ -135,10 +135,9 @@ void Display::paint(pixel x, pixel y, pixel width, pixel height, uint8_t **data)
 }
 
 inline void Display::paintOnKit(KitData kd, uint8_t **data) {
-	uint8_t ssKit = ss[kd.xKit][kd.yKit];
-#if DEBUG
-	debug("Paint on kit(%d): k[%d,%d], kr[%d,%d] -> %dx%d, p[%d,%d] -> %dx%d", ssKit, kd.xKit, kd.yKit, kd.xRelKit,
-			kd.yRelKit, kd.xRelKitSize, kd.yRelKitSize, kd.xOnKit, kd.yOnKit, kd.xOnKitSize, kd.yOnKitSize);
+#if DEBUG_DI
+	debug(F("Paint on kit(%d): k[%d,%d], kr[%d,%d] -> %dx%d, p[%d,%d] -> %dx%d"), ss[kd.xKit][kd.yKit], kd.xKit, kd.yKit,
+			kd.xRelKit, kd.yRelKit, kd.xRelKitSize, kd.yRelKitSize, kd.xOnKit, kd.yOnKit, kd.xOnKitSize, kd.yOnKitSize);
 #endif
 
 	// go over rows on single LED-Kit
@@ -177,11 +176,11 @@ inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 inline uint8_t Display::overlapped_firstAndMidleKit(KitData *kd, uint8_t **data) {
 	uint8_t newDispByte = data[kd->yDataIdx][kd->xRelKit];
 
-#if DEBUG
+#if DEBUG_DI
 	char fnewDispByte[9];
 	fbyte(newDispByte, fnewDispByte);
 
-	debug("-- overlapped_firstAndMidleKit [%d,%d] -> screen[%d][%d] = %s", kd->xOnKit, kd->yOnKit, kd->yOnScreenIdx,
+	debug(F("-- overlapped_firstAndMidleKit [%d,%d] -> screen[%d][%d] = %s"), kd->xOnKit, kd->yOnKit, kd->yOnScreenIdx,
 			kd->xOnScreenIdx, fnewDispByte);
 #endif
 
@@ -197,14 +196,14 @@ inline uint8_t Display::overlapped_lastKit(KitData *kd, uint8_t **data) {
 
 	uint8_t newDispByte = yByteMasked | screenByteMasked;
 
-#if DEBUG
+#if DEBUG_DI
 	char fnewDispByte[9];
 	fbyte(newDispByte, fnewDispByte);
 
 	char fyByte[9];
 	fbyte(yByte, fyByte);
 
-	debug("-- overlapped_firstAndMidleKit [%d,%d] -> data[%d][%d] = %s, screen[%d][%d] = %s", kd->xOnKit, kd->yOnKit,
+	debug(F("-- overlapped_firstAndMidleKit [%d,%d] -> data[%d][%d] = %s, screen[%d][%d] = %s"), kd->xOnKit, kd->yOnKit,
 			kd->yDataIdx, kd->xRelKit, fyByte, kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
 
@@ -220,14 +219,14 @@ inline uint8_t Display::shifted_firstKit(KitData *kd, uint8_t **data) {
 
 	uint8_t newDispByte = screenByteMasked | yByteMasked;
 
-#if DEBUG
+#if DEBUG_DI
 	char fnewDispByte[9];
 	fbyte(newDispByte, fnewDispByte);
 
 	char fyByte[9];
 	fbyte(data[kd->yDataIdx][0], fyByte);
 
-	debug("-- shifted_firstKit [%d,%d] -> data[%d][0] = %s, screen[%d][%d] = %s", kd->xOnKit, kd->yOnKit, kd->yDataIdx,
+	debug(F("-- shifted_firstKit [%d,%d] -> data[%d][0] = %s, screen[%d][%d] = %s"), kd->xOnKit, kd->yOnKit, kd->yDataIdx,
 			fyByte, kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
 
@@ -243,7 +242,7 @@ inline uint8_t Display::shifted_middleKit(KitData *kd, uint8_t **data) {
 
 	uint8_t newDispByte = yByteLeftMasked | yByteRightMasked;
 
-#if DEBUG
+#if DEBUG_DI
 	char fnewDispByte[9];
 	fbyte(newDispByte, fnewDispByte);
 
@@ -253,7 +252,7 @@ inline uint8_t Display::shifted_middleKit(KitData *kd, uint8_t **data) {
 	char fyByteRight[9];
 	fbyte(yByteRight, fyByteRight);
 
-	debug("-- shifted_middleKit [%d,%d] -> l-data[%d][%d] = %s, r-data[%d][%d] = %s, screen[%d][%d] = %s", kd->xOnKit,
+	debug(F("-- shifted_middleKit [%d,%d] -> l-data[%d][%d] = %s, r-data[%d][%d] = %s, screen[%d][%d] = %s"), kd->xOnKit,
 			kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, fyByteLeft, kd->yDataIdx, kd->xRelKit, fyByteRight,
 			kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
@@ -273,7 +272,7 @@ inline uint8_t Display::shifted_lastKit2Bytes(KitData *kd, uint8_t **data) {
 
 	uint8_t newDispByte = yByteLeftMasked | yByteRightMasked | screenByteMasked;
 
-#if DEBUG
+#if DEBUG_DI
 	char fnewDispByte[9];
 	fbyte(newDispByte, fnewDispByte);
 
@@ -283,7 +282,7 @@ inline uint8_t Display::shifted_lastKit2Bytes(KitData *kd, uint8_t **data) {
 	char fyByteRight[9];
 	fbyte(yByteRight, fyByteRight);
 
-	debug("-- shifted_lastKit2Bytes [%d,%d] -> l-data[%d][%d] = %s, r-data[%d][%d] = %s, screen[%d][%d] = %s",
+	debug(F("-- shifted_lastKit2Bytes [%d,%d] -> l-data[%d][%d] = %s, r-data[%d][%d] = %s, screen[%d][%d] = %s"),
 			kd->xOnKit, kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, fyByteLeft, kd->yDataIdx, kd->xRelKit, fyByteRight,
 			kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
@@ -301,14 +300,14 @@ inline uint8_t Display::shifted_lastKit1Byte(KitData *kd, uint8_t **data) {
 
 	uint8_t newDispByte = screenByteMasked | yByteMasked;
 
-#if DEBUG
+#if DEBUG_DI
 	char fnewDispByte[9];
 	fbyte(newDispByte, fnewDispByte);
 
 	char fyByte[9];
 	fbyte(data[kd->yDataIdx][0], fyByte);
 
-	debug("-- shifted_lastKit1Byte [%d,%d] -> data[%d][0] = %s, screen[%d][%d] = %s", kd->xOnKit, kd->yOnKit,
+	debug(F("-- shifted_lastKit1Byte [%d,%d] -> data[%d][0] = %s, screen[%d][%d] = %s"), kd->xOnKit, kd->yOnKit,
 			kd->yDataIdx, fyByte, kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
 
@@ -316,8 +315,8 @@ inline uint8_t Display::shifted_lastKit1Byte(KitData *kd, uint8_t **data) {
 }
 
 void Display::setupMax(ssLine ss) {
-#if DEBUG
-	debug("Configuring MAX7219 on SS: %d", ss);
+#if DEBUG_DI
+	debug(F("Configuring MAX7219 on SS: %d"), ss);
 #endif
 
 	pinMode(ss, OUTPUT);
@@ -346,11 +345,11 @@ void Display::clearKit(ssLine ss) {
 
 /* Transfers data to a MAX7219. */
 void Display::send(ssLine ss, uint8_t address, uint8_t data) {
-#if SIMULATE
+#if SIMULATE_DI
 	return;
 #endif
-#if DEBUG
-	debug("Send(%d): %d = 0x%02x", ss, address, data);
+#if DEBUG_DI
+	debug(F("Send(%d): %d = 0x%02x"), ss, address, data);
 #endif
 
 	// Ensure LOAD/CS is LOW

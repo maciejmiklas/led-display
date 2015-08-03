@@ -6,8 +6,8 @@ TextArea8x8::TextArea8x8(Display *display, pixel boxWidth) {
 	this->dataColumns = boxWidth / KIT_DIM + 1;
 	this->data = alloc2DArray8(8, dataColumns);
 
-#if DEBUG
-	debug("Created 8x8 area with dataColumns: %d and boxWidth: %d", dataColumns, boxWidth);
+#if DEBUG_TA
+	debug(F("Created 8x8 area with dataColumns: %d and boxWidth: %d"), dataColumns, boxWidth);
 #endif
 }
 

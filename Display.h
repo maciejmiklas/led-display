@@ -5,8 +5,8 @@
 #include "SPI.h"
 #include "Log.h"
 
-#define DEBUG true
-#define SIMULATE true
+#define DEBUG_DI false
+#define SIMULATE_DI true
 
 /** One pixel - single LED. */
 typedef uint8_t pixel;
