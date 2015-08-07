@@ -7,7 +7,7 @@ Display::Display(kit xKits, kit yKits, ssLine **ss) {
 
 	// init screen buffer
 	uint8_t rows = yKits * KIT_DIM;
-	//screen = init2DArray8(rows, xKits);
+	screen = init2DArray8(rows, xKits);
 
 #if DEBUG_DI
 	debug(F("Created display with %dx%d LED-Kits and %d bytes screen buffer"), xKits, yKits, (rows * xKits));

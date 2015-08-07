@@ -1,5 +1,5 @@
-#ifndef FONT8x8_H_
-#define FONT8x8_H_
+#ifndef LD_Font8x8_h
+#define LD_Font8x8_h
 
 #include "Arduino.h"
 
@@ -8,8 +8,11 @@
  * Each data byte represents one row (horizontal position) and bits within row are creating vertical dimension.
  * So data byte on position [0] gives top row, on position [8] bottom row and [3],[4] are in the middle.
  */
-#define FONT_ASCI_SIZE 128
+#define FONT8_SIZE 128
+#define FONT8_HEIGHT 8
 
-extern const uint8_t FONT_ASCI[FONT_ASCI_SIZE][8];
+PROGMEM extern const uint8_t FONT8[FONT8_SIZE][FONT8_HEIGHT];
 
-#endif /* FONT8x8_H_ */
+void font8x8_copy(uint8_t **data, uint8_t dataIdx, uint8_t fontIdx);
+
+#endif /* LD_Font8x8_h */

@@ -1,11 +1,11 @@
-#ifndef DISPLAY_H_
-#define DISPLAY_H_
+#ifndef LD_Display_h
+#define LD_Display_h
 
 #include "Arduino.h"
 #include "SPI.h"
 #include "Log.h"
 
-#define DEBUG_DI false
+#define DEBUG_DI true
 #define SIMULATE_DI true
 
 /** One pixel - single LED. */
@@ -25,20 +25,20 @@ typedef uint8_t ssLine;
 const uint8_t KIT_DIM = 8;
 
 // max7219 registers
-const uint8_t REG_NOOP = 0x0;
-const uint8_t REG_DIGIT0 = 0x1;
-const uint8_t REG_DIGIT1 = 0x2;
-const uint8_t REG_DIGIT2 = 0x3;
-const uint8_t REG_DIGIT3 = 0x4;
-const uint8_t REG_DIGIT4 = 0x5;
-const uint8_t REG_DIGIT5 = 0x6;
-const uint8_t REG_DIGIT6 = 0x7;
-const uint8_t REG_DIGIT7 = 0x8;
-const uint8_t REG_DECODEMODE = 0x9;
-const uint8_t REG_INTENSITY = 0xA;
-const uint8_t REG_SCANLIMIT = 0xB;
-const uint8_t REG_SHUTDOWN = 0xC;
-const uint8_t REG_DISPLAYTEST = 0xF;
+const static uint8_t REG_NOOP = 0x0;
+const static uint8_t REG_DIGIT0 = 0x1;
+const static uint8_t REG_DIGIT1 = 0x2;
+const static uint8_t REG_DIGIT2 = 0x3;
+const static uint8_t REG_DIGIT3 = 0x4;
+const static uint8_t REG_DIGIT4 = 0x5;
+const static uint8_t REG_DIGIT5 = 0x6;
+const static uint8_t REG_DIGIT6 = 0x7;
+const static uint8_t REG_DIGIT7 = 0x8;
+const static uint8_t REG_DECODEMODE = 0x9;
+const static uint8_t REG_INTENSITY = 0xA;
+const static uint8_t REG_SCANLIMIT = 0xB;
+const static uint8_t REG_SHUTDOWN = 0xC;
+const static uint8_t REG_DISPLAYTEST = 0xF;
 
 /**
  * Display consist of a matrix of 8x8-LED-Kits. For example putting 8x5 kits together will build
@@ -234,4 +234,4 @@ private:
 	inline uint8_t shifted_lastKit2Bytes(KitData *kd, uint8_t **data);
 };
 
-#endif /* DISPLAY_H_ */
+#endif /* LD_Display_h */

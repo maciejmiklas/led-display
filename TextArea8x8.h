@@ -1,9 +1,10 @@
-#ifndef TEXT_AREA8x8_H
-#define TEXT_AREA8x8_H
+#ifndef LD_TextArea8x8_h
+#define LD_TextArea8x8_h
 
 #include "Arduino.h"
 #include "Display.h"
 #include "Util.h"
+#include "Font8x8.h"
 
 #define DEBUG_TA true
 
@@ -24,7 +25,15 @@ public:
 	 * bytes (one font). For example: #text[0][8] points to first character, #text[1][8] to second,
 	 * #text[5][8] to fifth.
 	 */
-	void box(pixel x, pixel y, uint8_t** text, uint8_t textChars);
+	void box(pixel x, pixel y, uint8_t text[][8], uint8_t textChars);
+
+	/**
+	 * Displays text in a box placed on display on (x,y) and limited by #boxWidth, height is set to 8.
+	 *
+	 * The var-arg parameter is expected to be array of uint8_t where each one is an offset to a character stored
+	 * in #FONT8_ASCI. In order to print text: "Hi :)" on (10,12) you would call box(10, 12, 72, 105, 58, 41).
+	 */
+	void box(pixel x, pixel y, uint8_t vaLength, ...);
 
 private:
 	Display *display;
@@ -38,6 +47,8 @@ private:
 	/** Amount of columns (width) in 2D data table. */
 	uint8_t dataColumns;
 
+	void copyChar(uint8_t dataIdx, uint8_t fontIdx);
+
 };
 
-#endif /* TEXT_AREA8x8_H */
+#endif /* LD_TextArea8x8_h */
