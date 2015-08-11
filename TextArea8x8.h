@@ -41,7 +41,7 @@ private:
 	/** Width in pixels of a box. */
 	pixel boxWidth;
 
-	/** Screen data. */
+	/** Screen data. First position in #data array indicates row, second represents pixels within this row. */
 	uint8_t **data;
 
 	/** Amount of columns (width) in 2D data table. */

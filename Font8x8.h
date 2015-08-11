@@ -2,6 +2,7 @@
 #define LD_Font8x8_h
 
 #include "Arduino.h"
+#include "Log.h"
 
 /**
  * Font size is set to 8x8 pixels. Each single font is stored in array containing 8 data bytes.
@@ -10,6 +11,8 @@
  */
 #define FONT8_SIZE 128
 #define FONT8_HEIGHT 8
+
+#define DEBUG_FO true
 
 PROGMEM extern const uint8_t FONT8[FONT8_SIZE][FONT8_HEIGHT];
 
