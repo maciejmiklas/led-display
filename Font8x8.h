@@ -12,7 +12,7 @@
 #define FONT8_SIZE 128
 #define FONT8_HEIGHT 8
 
-#define DEBUG_FO true
+#define DEBUG_FO false
 
 PROGMEM extern const uint8_t FONT8[FONT8_SIZE][FONT8_HEIGHT];
 

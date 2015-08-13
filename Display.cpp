@@ -204,7 +204,7 @@ inline uint8_t Display::overlapped_lastKit(KitData *kd, uint8_t **data) {
 	char fyByte[9];
 	fbyte(yByte, fyByte);
 
-	debug(F("-- overlapped_firstAndMidleKit (%d,%d) -> data[%d][%d] = %s, screen[%d][%d] = %s"), kd->xOnKit, kd->yOnKit,
+	debug(F("-- overlapped_lastKit (%d,%d) -> data[%d][%d] = %s, screen[%d][%d] = %s"), kd->xOnKit, kd->yOnKit,
 			kd->yDataIdx, kd->xRelKit, fyByte, kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
 

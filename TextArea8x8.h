@@ -6,7 +6,7 @@
 #include "Util.h"
 #include "Font8x8.h"
 
-#define DEBUG_TA true
+#define DEBUG_TA false
 
 /**
  * This class provides various possibilities to display and animate 8x8 font.
@@ -33,7 +33,7 @@ public:
 	 * The var-arg parameter is expected to be array of uint8_t where each one is an offset to a character stored
 	 * in #FONT8_ASCI. In order to print text: "Hi :)" on (10,12) you would call box(10, 12, 72, 105, 58, 41).
 	 */
-	void box(pixel x, pixel y, uint8_t vaLength, ...);
+	void box(pixel x, pixel y, uint8_t chars, ...);
 
 private:
 	Display *display;
