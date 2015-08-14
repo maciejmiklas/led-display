@@ -184,32 +184,32 @@ private:
 	void clearKit(ssLine ss);
 
 	/** reduces width/height so it fits on the screen */
-	inline pixel limitSize(pixel xy, pixel wh, kit startKitXY, kit endKitXY);
+	 pixel limitSize(pixel xy, pixel wh, kit startKitXY, kit endKitXY);
 
 	/** finds ending 8x8-Matrix - inclusive */
-	inline kit calcEndKit(pixel xy, pixel wh, kit yxKits);
+	 kit calcEndKit(pixel xy, pixel wh, kit yxKits);
 
 	/** calculates width/height within current kit */
-	inline pixel calcSizeOnKit(pixel xy, pixel wh, kit xyKit, kit xyOnKit, kit startKitXY, kit endKitXY);
+	 pixel calcSizeOnKit(pixel xy, pixel wh, kit xyKit, kit xyOnKit, kit startKitXY, kit endKitXY);
 
 	/** Passes kd by reference, because values will get modified inside function */
-	inline void paintOnKit(KitData kd, uint8_t **data);
+	 void paintOnKit(KitData kd, uint8_t **data);
 
 	// overlapped_xxx -> vertical position of data is not shifted relatively to first kit data consists of 8 bit
 	// values and those align perfectly with 8 LED rows
 
-	inline uint8_t overlapped_firstAndMidleKit(KitData *kd, uint8_t **data);
-	inline uint8_t overlapped_lastKit(KitData *kd, uint8_t **data);
+	 uint8_t overlapped_firstAndMidleKit(KitData *kd, uint8_t **data);
+	 uint8_t overlapped_lastKit(KitData *kd, uint8_t **data);
 
 	// shifted_xxx -> vertical position of data IS shifted relatively to first kit
 
-	inline uint8_t shifted_firstKit(KitData *kd, uint8_t **data);
+	 uint8_t shifted_firstKit(KitData *kd, uint8_t **data);
 
 	/**
 	 *  Vertical position on first kit is shifted, so we need two bytes of data to cover single row on one LED-Kit.
 	 *  This method will be used to paint row on middle kit.
 	 */
-	inline uint8_t shifted_middleKit(KitData *kd, uint8_t **data);
+	 uint8_t shifted_middleKit(KitData *kd, uint8_t **data);
 
 	/**
 	 *  This is exception to method using 2 bytes. On the last kit it might be sufficient to use only one byte to
@@ -229,9 +229,9 @@ private:
 	 *  on third kit: 0-3 -> uses 3 bits of second and 1 bit of third byte
 	 *  On the last kit we need 2 bytes.
 	 */
-	inline uint8_t shifted_lastKit1Byte(KitData *kd, uint8_t **data);
+	 uint8_t shifted_lastKit1Byte(KitData *kd, uint8_t **data);
 
-	inline uint8_t shifted_lastKit2Bytes(KitData *kd, uint8_t **data);
+	 uint8_t shifted_lastKit2Bytes(KitData *kd, uint8_t **data);
 };
 
 #endif /* LD_Display_h */
