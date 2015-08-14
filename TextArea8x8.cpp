@@ -32,8 +32,7 @@ void TextArea8x8::box(pixel x, pixel y, uint8_t chars, ...) {
 	debug(F("Paint box on (%d,%d) with %d chars"), x, y, chars);
 #endif
 
-	// TODO clean only data elements that are not used to paint - each font takes 8x8, so it fully wipes out data block
-	clean2DArray8(data, FONT8_HEIGHT, dataColumns);
+	clean2DArray8(data, 0, chars - 1, FONT8_HEIGHT, dataColumns);
 
 	va_list va;
 	va_start(va, chars);
