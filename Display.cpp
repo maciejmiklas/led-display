@@ -1,8 +1,7 @@
 #include "Display.h"
 
-Display::Display(kit xKits, kit yKits, ssLine **ss) {
-	this->xKits = xKits;
-	this->yKits = yKits;
+Display::Display(kit xKits, kit yKits, ssLine **ss) :
+		xKits(xKits), yKits(yKits) {
 	this->ss = ss;
 
 	// init screen buffer
@@ -136,8 +135,9 @@ void Display::paint(pixel x, pixel y, pixel width, pixel height, uint8_t **data)
 
 inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 #if DEBUG_DI
-	debug(F("Paint on kit(%d): k(%d,%d), kr(%d,%d) -> %dx%d, p(%d,%d) -> %dx%d"), ss[kd.xKit][kd.yKit], kd.xKit, kd.yKit,
-			kd.xRelKit, kd.yRelKit, kd.xRelKitSize, kd.yRelKitSize, kd.xOnKit, kd.yOnKit, kd.xOnKitSize, kd.yOnKitSize);
+	debug(F("Paint on kit(%d): k(%d,%d), kr(%d,%d) -> %dx%d, p(%d,%d) -> %dx%d"), ss[kd.xKit][kd.yKit], kd.xKit,
+			kd.yKit, kd.xRelKit, kd.yRelKit, kd.xRelKitSize, kd.yRelKitSize, kd.xOnKit, kd.yOnKit, kd.xOnKitSize,
+			kd.yOnKitSize);
 #endif
 
 	// go over rows on single LED-Kit
@@ -227,8 +227,8 @@ inline uint8_t Display::shifted_firstKit(KitData *kd, uint8_t **data) {
 	char fyByte[9];
 	fbyte(yByte, fyByte);
 
-	debug(F("-- shifted_firstKit (%d,%d) -> data[%d][0] = %s, screen[%d][%d] = %s"), kd->xOnKit, kd->yOnKit, kd->yDataIdx,
-			fyByte, kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
+	debug(F("-- shifted_firstKit (%d,%d) -> data[%d][0] = %s, screen[%d][%d] = %s"), kd->xOnKit, kd->yOnKit,
+			kd->yDataIdx, fyByte, kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
 
 	return newDispByte;
@@ -253,8 +253,8 @@ inline uint8_t Display::shifted_middleKit(KitData *kd, uint8_t **data) {
 	char fyByteRight[9];
 	fbyte(yByteRight, fyByteRight);
 
-	debug(F("-- shifted_middleKit (%d,%d) -> l-data[%d][%d] = %s, r-data[%d][%d] = %s, screen[%d][%d] = %s"), kd->xOnKit,
-			kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, fyByteLeft, kd->yDataIdx, kd->xRelKit, fyByteRight,
+	debug(F("-- shifted_middleKit (%d,%d) -> l-data[%d][%d] = %s, r-data[%d][%d] = %s, screen[%d][%d] = %s"),
+			kd->xOnKit, kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, fyByteLeft, kd->yDataIdx, kd->xRelKit, fyByteRight,
 			kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
 

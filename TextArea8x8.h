@@ -6,7 +6,7 @@
 #include "Util.h"
 #include "Font8x8.h"
 
-#define DEBUG_TA false
+#define DEBUG_TA true
 
 /**
  * This class provides various possibilities to display and animate 8x8 font.
@@ -14,7 +14,7 @@
  */
 class TextArea8x8 {
 public:
-	TextArea8x8(Display *display, pixel boxWidth);
+	TextArea8x8(Display *display, pixel boxWidth, uint16_t animationDelayMs);
 
 	~TextArea8x8();
 	/**
@@ -35,17 +35,26 @@ public:
 	 */
 	void box(pixel x, pixel y, uint8_t chars, ...);
 
+	void scroll(pixel x, pixel y, uint8_t chars, ...);
+
 private:
 	Display *display;
 
-	/** Width in pixels of a box. */
-	pixel boxWidth;
+	const uint16_t animationDelayMs;
 
-	/** Screen data. First position in #data array indicates row, second represents pixels within this row. */
+	/** Width in pixels of a box. */
+	const pixel boxWidth;
+
+	/**
+	 * Screen data. First position in #data array indicates row (x axis), second represents pixels within this row.
+	 * #data has 8 rows and #xDataSize columns.
+	 */
 	uint8_t **data;
 
-	/** Amount of columns (width) in 2D data table. */
-	uint8_t dataColumns;
+	/** Amount of columns (width) in 2D data table. This is an amount of bytes in vertical position. */
+	const uint8_t xDataSize;
+	/** Amount of rows (height) in 2D data table. */
+	const uint8_t yDataSize;
 
 	void copyChar(uint8_t dataIdx, uint8_t fontIdx);
 

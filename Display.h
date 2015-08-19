@@ -5,7 +5,7 @@
 #include "SPI.h"
 #include "Log.h"
 
-#define DEBUG_DI false
+#define DEBUG_DI true
 #define SIMULATE_DI true
 
 /** One pixel - single LED. */
@@ -114,10 +114,10 @@ private:
 	ssLine **ss;
 
 	/** Horizontal amount of 8x8-Matrices, known as Kits */
-	kit xKits;
+	const kit xKits;
 
 	/** Vertical amount of 8x8-Matrices */
-	kit yKits;
+	const kit yKits;
 
 	/**
 	 * It's a two dimensional array containing pixels for LED-Kits. Each LED-Kit has embedded memory, but we need to

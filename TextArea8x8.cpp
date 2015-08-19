@@ -1,18 +1,19 @@
 #include "TextArea8x8.h"
 
-TextArea8x8::TextArea8x8(Display *display, pixel boxWidth) {
+TextArea8x8::TextArea8x8(Display *display, pixel boxWidth, uint16_t animationDelayMs) :
+		animationDelayMs(animationDelayMs), boxWidth(boxWidth), xDataSize(boxWidth / KIT_DIM + 1), yDataSize(KIT_DIM) {
 	this->display = display;
-	this->boxWidth = boxWidth;
-	this->dataColumns = boxWidth / KIT_DIM + 1;
-	this->data = alloc2DArray8(FONT8_HEIGHT, dataColumns);
+	this->data = alloc2DArray8(FONT8_HEIGHT, xDataSize);
 
 #if DEBUG_TA
-	debug(F("Created 8x8 area with data: %dx%d, width: %d"), FONT8_HEIGHT, dataColumns, boxWidth);
+	debug(F("Created 8x8 area with data: %dx%d, width: %d"), FONT8_HEIGHT, xDataSize, boxWidth);
 #endif
+
+	debug(F("ANIM DELAY: %d"), this->animationDelayMs);
 }
 
 TextArea8x8::~TextArea8x8() {
-	delete2DArray(data, FONT8_HEIGHT, dataColumns);
+	delete2DArray(data, FONT8_HEIGHT, xDataSize);
 }
 
 void TextArea8x8::box(pixel x, pixel y, uint8_t text[][8], uint8_t textChars) {
@@ -29,10 +30,10 @@ void TextArea8x8::box(pixel x, pixel y, uint8_t text[][8], uint8_t textChars) {
 
 void TextArea8x8::box(pixel x, pixel y, uint8_t chars, ...) {
 #if DEBUG_TA
-	debug(F("Paint box on (%d,%d) with %d chars"), x, y, chars);
+	debug(F("Display text box on (%d,%d) with %d chars"), x, y, chars);
 #endif
 
-	clean2DArray8(data, 0, chars - 1, FONT8_HEIGHT, dataColumns);
+	clean2DArray8(data, 0, chars - 1, FONT8_HEIGHT, xDataSize);
 
 	va_list va;
 	va_start(va, chars);
@@ -44,3 +45,14 @@ void TextArea8x8::box(pixel x, pixel y, uint8_t chars, ...) {
 	display->paint(x, y, boxWidth, 8, data);
 	va_end(va);
 }
+
+void TextArea8x8::scroll(pixel x, pixel y, uint8_t chars, ...) {
+#if DEBUG_TA
+	debug(F("Scroll text on (%d,%d) with %d chars"), x, y, chars);
+#endif
+
+	for (uint8_t xDataIdx = 0; xDataIdx < xDataSize; xDataIdx++) {
+
+	}
+}
+
