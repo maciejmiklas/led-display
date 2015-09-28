@@ -9,8 +9,9 @@
  * Each data byte represents one row (horizontal position) and bits within row are creating vertical dimension.
  * So data byte on position [0] gives top row, on position [8] bottom row and [3],[4] are in the middle.
  */
-#define FONT8_SIZE 128
-#define FONT8_HEIGHT 8
+const uint8_t FONT8_SIZE = 128;
+const uint8_t FONT8_WIDTH = 8;
+const uint8_t FONT8_HEIGHT = 8;
 
 #define DEBUG_FO false
 

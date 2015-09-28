@@ -6,7 +6,7 @@
 #include "Util.h"
 #include "Font8x8.h"
 
-#define DEBUG_TA true
+#define DEBUG_TA false
 
 /**
  * This class provides various possibilities to display and animate 8x8 font.
@@ -51,8 +51,14 @@ private:
 	 */
 	uint8_t **data;
 
-	/** Amount of columns (width) in 2D data table. This is an amount of bytes in vertical position. */
+	/**
+	 * Amount of columns (width) in 2D data table. This is an amount of bytes in horizontal position. Each font has
+	 * 8x8 pixels, so it occupies one byte horizontal and 8 rows.
+	 * Horizontal size of the data is big enough to cover display box given by #boxWidth plus one byte off screen.
+	 * This byte is used as buffer for vertical scrolling animation.
+	 */
 	const uint8_t xDataSize;
+
 	/** Amount of rows (height) in 2D data table. */
 	const uint8_t yDataSize;
 

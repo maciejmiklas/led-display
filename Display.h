@@ -5,8 +5,8 @@
 #include "SPI.h"
 #include "Log.h"
 
-#define DEBUG_DI true
-#define SIMULATE_DI true
+#define DEBUG_DI false
+#define SIMULATE_DI false
 
 /** One pixel - single LED. */
 typedef uint8_t pixel;
@@ -22,7 +22,7 @@ typedef uint8_t ssLine;
  * Currently #KIT_DIM is fixed to 8, because pixel data is stored in byte array and we are assuming,
  * that one byte fully covers one row on single LED-Kit.
  */
-const uint8_t KIT_DIM = 8;
+const static uint8_t KIT_DIM = 8;
 
 // max7219 registers
 const static uint8_t REG_NOOP = 0x0;

@@ -1,7 +1,7 @@
 #include "TextArea8x8.h"
 
 TextArea8x8::TextArea8x8(Display *display, pixel boxWidth, uint16_t animationDelayMs) :
-		animationDelayMs(animationDelayMs), boxWidth(boxWidth), xDataSize(boxWidth / KIT_DIM + 1), yDataSize(KIT_DIM) {
+		animationDelayMs(animationDelayMs), boxWidth(boxWidth), xDataSize(boxWidth / KIT_DIM + 2), yDataSize(KIT_DIM) {
 	this->display = display;
 	this->data = alloc2DArray8(FONT8_HEIGHT, xDataSize);
 
@@ -51,8 +51,48 @@ void TextArea8x8::scroll(pixel x, pixel y, uint8_t chars, ...) {
 	debug(F("Scroll text on (%d,%d) with %d chars"), x, y, chars);
 #endif
 
-	for (uint8_t xDataIdx = 0; xDataIdx < xDataSize; xDataIdx++) {
+	va_list va;
+	va_start(va, chars);
+	const uint8_t xDataBufIdx = xDataSize - 1;
+	for (uint8_t charIdx = 0; charIdx < chars; charIdx++) {
+		uint8_t fontIdx = va_arg(va, int);
 
+#if DEBUG_TA
+		debug(F("Font %d"), fontIdx);
+#endif
+
+		// copy next font into off screen bye on the left
+		font8x8_copy(data, xDataBufIdx, fontIdx);
+
+		// scroll 8 bits from left to right
+		for (uint8_t wIdx = 0; wIdx < FONT8_WIDTH; wIdx++) {
+			for (uint8_t hIdx = 0; hIdx < FONT8_WIDTH; hIdx++) {
+				shiftL(data[hIdx], xDataSize);
+			}
+#if DEBUG_TA
+			debug(F("Paint font line %d"), wIdx);
+#endif
+			display->paint(x, y, boxWidth, 8, data);
+			delay(animationDelayMs);
+		}
 	}
+
+	// scrolling of all fonts is done, now scroll currently displayed fonts to the left until display is empty
+	for (uint8_t wIdx = 0; wIdx < boxWidth; wIdx++) {
+		for (uint8_t hIdx = 0; hIdx < FONT8_WIDTH; hIdx++) {
+			shiftL(data[hIdx], xDataSize);
+		}
+#if DEBUG_TA
+		debug(F("Paint font line %d"), wIdx);
+#endif
+		display->paint(x, y, boxWidth, 8, data);
+		delay(animationDelayMs);
+	}
+
+#if DEBUG_TA
+	debug(F("Final animation"));
+#endif
+
+	va_end(va);
 }
 

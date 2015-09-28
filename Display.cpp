@@ -134,10 +134,10 @@ void Display::paint(pixel x, pixel y, pixel width, pixel height, uint8_t **data)
 }
 
 inline void Display::paintOnKit(KitData kd, uint8_t **data) {
+	ssLine ssLine = ss[kd.xKit][kd.yKit];
 #if DEBUG_DI
-	debug(F("Paint on kit(%d): k(%d,%d), kr(%d,%d) -> %dx%d, p(%d,%d) -> %dx%d"), ss[kd.xKit][kd.yKit], kd.xKit,
-			kd.yKit, kd.xRelKit, kd.yRelKit, kd.xRelKitSize, kd.yRelKitSize, kd.xOnKit, kd.yOnKit, kd.xOnKitSize,
-			kd.yOnKitSize);
+	debug(F("Paint on kit(%d): k(%d,%d), kr(%d,%d) -> %dx%d, p(%d,%d) -> %dx%d"), ssLine, kd.xKit, kd.yKit, kd.xRelKit,
+			kd.yRelKit, kd.xRelKitSize, kd.yRelKitSize, kd.xOnKit, kd.yOnKit, kd.xOnKitSize, kd.yOnKitSize);
 #endif
 
 	// go over rows on single LED-Kit
@@ -167,6 +167,7 @@ inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 			}
 		}
 		screen[kd.yOnScreenIdx][kd.xOnScreenIdx] = newDispByte;
+		send(ssLine, yOnKit + 1, newDispByte);
 
 		kd.yOnKit++;
 		kd.yDataIdx++;
