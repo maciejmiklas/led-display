@@ -23,6 +23,16 @@ void Display::setup() {
 	setupMax();
 }
 
+void Display::clear() {
+	for (uint8_t ssY = 0; ssY < yKits; ssY++) {
+		for (uint8_t ssX = 0; ssX < xKits; ssX++) {
+			clearKit(ss[ssX][ssY]);
+		}
+	}
+	uint8_t rows = yKits * KIT_DIM;
+	clean2DArray8(screen, rows, xKits);
+}
+
 void Display::setupSpi() {
 #if SIMULATE_DI
 	return;
@@ -106,9 +116,7 @@ void Display::paint(pixel x, pixel y, pixel width, pixel height, uint8_t **data)
 		} else {
 			kd->yOnKit = 0;
 		}
-
 		kd->yOnKitSize = calcSizeOnKit(y, heightLim, kd->yKit, kd->yOnKit, startKitY, endKitY);
-
 		kd->yDataIdx = kd->yRelKit == 0 ? 0 : (KIT_DIM - kd->yOnFirstKit);
 		if (kd->yRelKit >= 2) {
 			kd->yDataIdx += (KIT_DIM * (kd->yRelKit - 1));
@@ -141,7 +149,8 @@ inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 #endif
 
 	// go over rows on single LED-Kit
-	for (pixel yOnKit = 0; yOnKit < kd.yOnKitSize; yOnKit++) {
+	pixel yOnKit = kd.yOnKit;
+	for (pixel yCnt = 0; yCnt < kd.yOnKitSize; yCnt++) {
 		uint8_t newDispByte;
 
 		if (kd.xOnFirstKit == 0) { // x position on first kit is not shifted
@@ -169,7 +178,7 @@ inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 		screen[kd.yOnScreenIdx][kd.xOnScreenIdx] = newDispByte;
 		send(ssLine, yOnKit + 1, newDispByte);
 
-		kd.yOnKit++;
+		yOnKit++;
 		kd.yDataIdx++;
 		kd.yOnScreenIdx++;
 	}
@@ -332,6 +341,7 @@ void Display::setupMax(ssLine ss) {
 	send(ss, REG_INTENSITY, 15);  // character intensity: range: 0 to 15
 	send(ss, REG_SCANLIMIT, 7);   // show all 8 digits
 	send(ss, REG_DECODEMODE, 0);  // using an led matrix (not digits)
+	clearKit(ss);
 }
 
 void Display::clearKit(ssLine ss) {

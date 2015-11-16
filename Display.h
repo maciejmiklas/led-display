@@ -74,11 +74,6 @@ const static uint8_t REG_DISPLAYTEST = 0xF;
 class Display {
 public:
 
-	/**
-	 * #ss contains Select Slave lines for 8x8-LED-Kits, The first coordinate in table indicates horizontal
-	 * position, second vertical: #ss[horizontal][vertical], this gives us dimensions:
-	 * #ss[0][0] -> ss[xKits-1][yKits-1]
-	 */
 	Display(kit xKits, kit yKits, ssLine **ss);
 
 	~Display();
@@ -106,10 +101,16 @@ public:
 	/** Initialized SPI and 8x8-Matrix elements. */
 	void setup();
 
+	void clear();
 private:
+
 	/**
-	 * Slave Select lines reflecting positions of 8x8-Matrices on the Displays.
-	 * It has the same orientation as #sbuf
+	 * Slave Select lines reflecting positions of 8x8-Matrices on the Displays. It has the same orientation as
+	 * #screen.
+	 *
+	 * #ss contains Select Slave lines for 8x8-LED-Kits, The first coordinate in table indicates horizontal
+	 * position, second vertical: #ss[horizontal][vertical], this gives us dimensions:
+	 * #ss[0][0] -> ss[xKits-1][yKits-1]
 	 */
 	ssLine **ss;
 
@@ -127,7 +128,7 @@ private:
 	 * sprite without affecting it direct neighbors. We have to calculate byte (row has 8 pixels) for single row on
 	 * particular kit that contains pixels for already painted sprite and from new one.
 	 *
-	 * First dimension in display data indicates row, second kit. For example #displayRAM[2][3] indicates
+	 * First dimension in display data indicates row, second kit. For example #screen[2][3] indicates
 	 * 3rd row on 4th kit (starting form 0).
 	 */
 	uint8_t **screen;
