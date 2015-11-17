@@ -44,6 +44,9 @@ const static uint8_t REG_DISPLAYTEST = 0xF;
  * Display consist of a matrix of 8x8-LED-Kits. For example putting 8x5 kits together will build
  * a display with (8*8)x(8*5) pixels -> (64x40).
  *
+ * Paint operations on display do not send immediately data to MAX. First flush call does it. This gives us possibility
+ * for multiple modifications of display content and one hardware repaint operation.
+ *
  * Each LED represents single pixel, and it's placed on (x,y) position. Left top corner has (0,0) and bottom right
  * (max width-1, max height-1) - in our example above it's (63,39).
  *
@@ -69,7 +72,7 @@ const static uint8_t REG_DISPLAYTEST = 0xF;
  2 ........|........|........|........   (8,2)|(15,2)|(23,2)|(31,2)
  3 ........|........|........|........   (8,3)|(15,3)|(23,3)|(31,3)
  4 ........|........|........|........   (8,4)|(15,4)|(23,4)|(31,4)
-
+ *
  */
 class Display {
 public:
@@ -101,7 +104,13 @@ public:
 	/** Initialized SPI and 8x8-Matrix elements. */
 	void setup();
 
+	/** Clears whole display. */
 	void clear();
+
+	void clear(pixel x, pixel y, pixel width, pixel height);
+
+	/** Sends the content of screen buffer to MAX chips and repaints whole display. */
+	void flush();
 private:
 
 	/**
@@ -119,6 +128,8 @@ private:
 
 	/** Vertical amount of 8x8-Matrices */
 	const kit yKits;
+
+	const uint8_t rows;
 
 	/**
 	 * It's a two dimensional array containing pixels for LED-Kits. Each LED-Kit has embedded memory, but we need to
@@ -193,17 +204,15 @@ private:
 	/** calculates width/height within current kit */
 	 pixel calcSizeOnKit(pixel xy, pixel wh, kit xyKit, kit xyOnKit, kit startKitXY, kit endKitXY);
 
-	/** Passes kd by reference, because values will get modified inside function */
+	/** Passes kd by value, because values will get modified inside function */
 	 void paintOnKit(KitData kd, uint8_t **data);
 
 	// overlapped_xxx -> vertical position of data is not shifted relatively to first kit data consists of 8 bit
 	// values and those align perfectly with 8 LED rows
-
 	 uint8_t overlapped_firstAndMidleKit(KitData *kd, uint8_t **data);
 	 uint8_t overlapped_lastKit(KitData *kd, uint8_t **data);
 
 	// shifted_xxx -> vertical position of data IS shifted relatively to first kit
-
 	 uint8_t shifted_firstKit(KitData *kd, uint8_t **data);
 
 	/**
