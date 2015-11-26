@@ -1,10 +1,10 @@
 #include <StaticTextArea.h>
 
-StaticTextArea::StaticTextArea(Display *display, pixel boxWidth) :
+StaticTextArea::StaticTextArea(Display *display, pixel_t boxWidth) :
 		TextArea(display, boxWidth) {
 }
 
-void StaticTextArea::box(pixel x, pixel y, uint8_t text[][8], uint8_t textChars) {
+void StaticTextArea::box(pixel_t x, pixel_t y, uint8_t text[][8], uint8_t textChars) {
 	for (uint8_t charIdx = 0; charIdx < textChars; charIdx++) {
 		for (uint8_t row = 0; row < 8; row++) {
 			data[row][charIdx] = text[charIdx][row];
@@ -16,7 +16,7 @@ void StaticTextArea::box(pixel x, pixel y, uint8_t text[][8], uint8_t textChars)
 	display->paint(x, y, boxWidth, 8, data);
 }
 
-void StaticTextArea::box(pixel x, pixel y, uint8_t chars, ...) {
+void StaticTextArea::box(pixel_t x, pixel_t y, uint8_t chars, ...) {
 #if DEBUG_TA
 	debug(F("Display text box on (%d,%d) with %d chars"), x, y, chars);
 #endif

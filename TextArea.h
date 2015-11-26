@@ -14,14 +14,14 @@
  */
 class TextArea {
 public:
-	virtual ~TextArea() = 0;
+	virtual ~TextArea();
 
 protected:
-	TextArea(Display *display, pixel boxWidth);
+	TextArea(Display *display, pixel_t boxWidth);
 	Display *display;
 
 	/** Width in pixels of a box. */
-	const pixel boxWidth;
+	const pixel_t boxWidth;
 
 	/**
 	 * Screen data. First position in #data array indicates row (y axis), second represents pixels within this row.

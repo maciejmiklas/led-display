@@ -19,7 +19,7 @@ public:
 	/**
 	 * #boxWidth is the width in pixels. Height is always set to 8 pixels - it's determined by character size.
 	 */
-	StaticTextArea(Display *display, pixel boxWidth);
+	StaticTextArea(Display *display, pixel_t boxWidth);
 
 	/**
 	 * Displays text in a box placed on display on (x,y) and limited by #boxWidth, height is set to 8.
@@ -29,7 +29,7 @@ public:
 	 * bytes (one font). For example: #text[0][8] points to first character, #text[1][8] to second,
 	 * #text[5][8] to fifth.
 	 */
-	void box(pixel x, pixel y, uint8_t text[][8], uint8_t textChars);
+	void box(pixel_t x, pixel_t y, uint8_t text[][8], uint8_t textChars);
 
 	/**
 	 * Displays text in a box placed on display on (x,y) and limited by #boxWidth, height is set to 8.
@@ -38,7 +38,7 @@ public:
 	 * in #FONT8_ASCI. In order to print text: "Hi :)" on (10,12) you would call
 	 * #box(10, 12, 6, 72, 105, 32, 58, 41). "72, 105, 32, 58, 41" ==  "Hi :)" and 6 is the amount of vararg params.
 	 */
-	void box(pixel x, pixel y, uint8_t chars, ...);
+	void box(pixel_t x, pixel_t y, uint8_t chars, ...);
 };
 
 #endif /* STATICTEXTAREA_H_ */

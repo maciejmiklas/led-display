@@ -21,7 +21,7 @@ public:
 	virtual void stop() const = 0;
 
 protected:
-	AnimatedTextArea(Display *display, pixel boxWidth, uint16_t animationDelayMs, uint8_t id);
+	AnimatedTextArea(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
 	virtual void nextFrame() const = 0;
 
 	/** Unique id used for logging */

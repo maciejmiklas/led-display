@@ -1,6 +1,6 @@
 #include "Display.h"
 
-Display::Display(kit xKits, kit yKits, ssLine **ss) :
+Display::Display(kit_t xKits, kit_t yKits, ss_t **ss) :
 		xKits(xKits), yKits(yKits), rows(yKits * KIT_DIM) {
 	this->ss = ss;
 
@@ -24,7 +24,7 @@ void Display::flush() {
 	for (uint8_t ssY = 0; ssY < yKits; ssY++) {
 		for (uint8_t ssX = 0; ssX < xKits; ssX++) {
 			uint8_t row = ssY * KIT_DIM;
-			ssLine ssval = ss[ssX][ssY];
+			ss_t ssval = ss[ssX][ssY];
 			for (uint8_t line = REG_DIGIT0; line <= REG_DIGIT7; line++) {
 				send(ssval, line, screen[row][ssX]);
 				row++;
@@ -64,15 +64,15 @@ void Display::setupMax() {
 	}
 }
 
-inline pixel Display::limitSize(pixel xy, pixel wh, kit startKitXY, kit endKitXY) {
+inline pixel_t Display::limitSize(pixel_t xy, pixel_t wh, kit_t startKitXY, kit_t endKitXY) {
 	return min(wh, (endKitXY - startKitXY + 1) * KIT_DIM - xy % KIT_DIM);
 }
 
-inline kit Display::calcEndKit(pixel xy, pixel wh, kit yxKits) {
+inline kit_t Display::calcEndKit(pixel_t xy, pixel_t wh, kit_t yxKits) {
 	return min(((xy + wh - 1) / KIT_DIM), yxKits - 1);
 }
 
-inline pixel Display::calcSizeOnKit(pixel xy, pixel wh, kit xyKit, kit xyOnKit, kit startKitXY, kit endKitXY) {
+inline pixel_t Display::calcSizeOnKit(pixel_t xy, pixel_t wh, kit_t xyKit, kit_t xyOnKit, kit_t startKitXY, kit_t endKitXY) {
 	uint8_t widthOnKit = 0;
 	if (xyKit == startKitXY) { // first kit
 		widthOnKit = min(wh, KIT_DIM - xyOnKit);
@@ -88,7 +88,7 @@ inline pixel Display::calcSizeOnKit(pixel xy, pixel wh, kit xyKit, kit xyOnKit, 
 	return widthOnKit;
 }
 
-void Display::clear(pixel x, pixel y, pixel width, pixel height) {
+void Display::clear(pixel_t x, pixel_t y, pixel_t width, pixel_t height) {
 #if DEBUG_DI
 	debug(F("Clear display: p(%d,%d) -> %dx%d"), x, y, width, height);
 #endif
@@ -96,20 +96,20 @@ void Display::clear(pixel x, pixel y, pixel width, pixel height) {
 	paint(x, y, width, height, NULL);
 }
 
-void Display::paint(pixel x, pixel y, pixel width, pixel height, uint8_t **data) {
+void Display::paint(pixel_t x, pixel_t y, pixel_t width, pixel_t height, uint8_t **data) {
 #if DEBUG_DI
 	debug(F("Paint pixels: p(%d,%d) -> %dx%d"), x, y, width, height);
 #endif
 
 	// find starting 8x8-Matrix, begins with 0
-	kit startKitX = x / KIT_DIM;
-	kit startKitY = y / KIT_DIM;
+	kit_t startKitX = x / KIT_DIM;
+	kit_t startKitY = y / KIT_DIM;
 
-	kit endKitX = calcEndKit(x, width, xKits);
-	kit endKitY = calcEndKit(y, height, yKits);
+	kit_t endKitX = calcEndKit(x, width, xKits);
+	kit_t endKitY = calcEndKit(y, height, yKits);
 
-	pixel widthLim = limitSize(x, width, startKitX, endKitX);
-	pixel heightLim = limitSize(y, height, startKitY, endKitY);
+	pixel_t widthLim = limitSize(x, width, startKitX, endKitX);
+	pixel_t heightLim = limitSize(y, height, startKitY, endKitY);
 
 #if DEBUG_DI
 	debug(F("Using kits: k(%d,%d) - k(%d,%d) with pixel w/h: %dx%d"), startKitX, startKitY, endKitX, endKitY, widthLim,
@@ -162,12 +162,12 @@ void Display::paint(pixel x, pixel y, pixel width, pixel height, uint8_t **data)
 
 inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 #if DEBUG_DI
-	debug(F("Paint on kit(%d): k(%d,%d), kr(%d,%d) -> %dx%d, p(%d,%d) -> %dx%d"), ssLine, kd.xKit, kd.yKit, kd.xRelKit,
+	debug(F("Paint on kit(%d): k(%d,%d), kr(%d,%d) -> %dx%d, p(%d,%d) -> %dx%d"), ss_t, kd.xKit, kd.yKit, kd.xRelKit,
 			kd.yRelKit, kd.xRelKitSize, kd.yRelKitSize, kd.xOnKit, kd.yOnKit, kd.xOnKitSize, kd.yOnKitSize);
 #endif
 
 	// go over rows on single LED-Kit
-	for (pixel yCnt = 0; yCnt < kd.yOnKitSize; yCnt++) {
+	for (pixel_t yCnt = 0; yCnt < kd.yOnKitSize; yCnt++) {
 		uint8_t newDispByte;
 
 		if (kd.xOnFirstKit == 0) { // x position on first kit is not shifted
@@ -339,7 +339,7 @@ inline uint8_t Display::shifted_lastKit1Byte(KitData *kd, uint8_t **data) {
 	return newDispByte;
 }
 
-void Display::setupMax(ssLine ss) {
+void Display::setupMax(ss_t ss) {
 #if DEBUG_DI
 	debug(F("Configuring MAX7219 on SS: %d"), ss);
 #endif
@@ -358,7 +358,7 @@ void Display::setupMax(ssLine ss) {
 	clearKit(ss);
 }
 
-void Display::clearKit(ssLine ss) {
+void Display::clearKit(ss_t ss) {
 	send(ss, REG_DIGIT0, 0);
 	send(ss, REG_DIGIT1, 0);
 	send(ss, REG_DIGIT2, 0);
@@ -370,7 +370,7 @@ void Display::clearKit(ssLine ss) {
 }
 
 /* Transfers data to a MAX7219. */
-void Display::send(ssLine ss, uint8_t address, uint8_t data) {
+void Display::send(ss_t ss, uint8_t address, uint8_t data) {
 #if SIMULATE_DI
 	return;
 #endif

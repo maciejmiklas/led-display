@@ -1,6 +1,6 @@
 #include "TextArea.h"
 
-TextArea::TextArea(Display *display, pixel boxWidth) :
+TextArea::TextArea(Display *display, pixel_t boxWidth) :
 		boxWidth(boxWidth), xDataSize(boxWidth / KIT_DIM + 2), yDataSize(KIT_DIM) {
 	this->display = display;
 	this->data = alloc2DArray8(FONT8_HEIGHT, xDataSize);

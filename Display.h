@@ -9,13 +9,13 @@
 #define SIMULATE_DI false
 
 /** One pixel - single LED. */
-typedef uint8_t pixel;
+typedef uint8_t pixel_t;
 
 /** One LED-Kit - 8x8 LED Matrix. */
-typedef uint8_t kit;
+typedef uint8_t kit_t;
 
 /** Slave Select line for max7219. */
-typedef uint8_t ssLine;
+typedef uint8_t ss_t;
 
 /**
  * Dimension in pixels (LEDs) of LED-Matrix-Kit.
@@ -77,7 +77,7 @@ const static uint8_t REG_DISPLAYTEST = 0xF;
 class Display {
 public:
 
-	Display(kit xKits, kit yKits, ssLine **ss);
+	Display(kit_t xKits, kit_t yKits, ss_t **ss);
 
 	~Display();
 
@@ -99,7 +99,7 @@ public:
 	 * For example, matrix consisting of 3x2 bytes has maximal dimension 16(2*8) x 3 pixels,
 	 * which gives us a 48 pixels in total. We have 3 rows, each one has two bytes.
 	 */
-	void paint(pixel x, pixel y, pixel width, pixel height, uint8_t **data);
+	void paint(pixel_t x, pixel_t y, pixel_t width, pixel_t height, uint8_t **data);
 
 	/** Initialized SPI and 8x8-Matrix elements. */
 	void setup();
@@ -107,7 +107,7 @@ public:
 	/** Clears whole display. */
 	void clear();
 
-	void clear(pixel x, pixel y, pixel width, pixel height);
+	void clear(pixel_t x, pixel_t y, pixel_t width, pixel_t height);
 
 	/** Sends the content of screen buffer to MAX chips and repaints whole display. */
 	void flush();
@@ -121,13 +121,13 @@ private:
 	 * position, second vertical: #ss[horizontal][vertical], this gives us dimensions:
 	 * #ss[0][0] -> ss[xKits-1][yKits-1]
 	 */
-	ssLine **ss;
+	ss_t **ss;
 
 	/** Horizontal amount of 8x8-Matrices, known as Kits */
-	const kit xKits;
+	const kit_t xKits;
 
 	/** Vertical amount of 8x8-Matrices */
-	const kit yKits;
+	const kit_t yKits;
 
 	const uint8_t rows;
 
@@ -152,16 +152,16 @@ private:
 		// all (x,y) coordinates are starting from 0 and are inclusive.
 
 		/** starting pixels on first LED-Kit */
-		pixel xOnFirstKit;
-		pixel yOnFirstKit;
+		pixel_t xOnFirstKit;
+		pixel_t yOnFirstKit;
 
 		/** (x,y) position starting from first Kit that we are panting on. */
-		kit xRelKit;
-		kit yRelKit;
+		kit_t xRelKit;
+		kit_t yRelKit;
 
 		/** Amount of LED-Kits used for painting */
-		kit xRelKitSize;
-		kit yRelKitSize;
+		kit_t xRelKitSize;
+		kit_t yRelKitSize;
 
 		/**
 		 * Amount of bytes from #data containing pixels for x-axis (vertical) - second argument of #data[y][x].
@@ -170,16 +170,16 @@ private:
 		uint8_t xDataBytes;
 
 		/** (x,y) Kit position starting from first Kit in LED-Kit-Matrix. */
-		kit xKit;
-		kit yKit;
+		kit_t xKit;
+		kit_t yKit;
 
 		/** (x,y) position on kit that we are painting on. */
-		pixel xOnKit;
-		pixel yOnKit;
+		pixel_t xOnKit;
+		pixel_t yOnKit;
 
 		/** dimensions on kit that we are painting on. */
-		pixel xOnKitSize;
-		pixel yOnKitSize;
+		pixel_t xOnKitSize;
+		pixel_t yOnKitSize;
 
 		/** (x,y) for #screen[y,x]  */
 		uint8_t xOnScreenIdx;
@@ -190,19 +190,19 @@ private:
 	} KitData;
 
 	void setupMax();
-	void setupMax(ssLine ss);
+	void setupMax(ss_t ss);
 	void setupSpi();
-	void send(ssLine ss, uint8_t address, uint8_t value);
-	void clearKit(ssLine ss);
+	void send(ss_t ss, uint8_t address, uint8_t value);
+	void clearKit(ss_t ss);
 
 	/** reduces width/height so it fits on the screen */
-	 pixel limitSize(pixel xy, pixel wh, kit startKitXY, kit endKitXY);
+	 pixel_t limitSize(pixel_t xy, pixel_t wh, kit_t startKitXY, kit_t endKitXY);
 
 	/** finds ending 8x8-Matrix - inclusive */
-	 kit calcEndKit(pixel xy, pixel wh, kit yxKits);
+	 kit_t calcEndKit(pixel_t xy, pixel_t wh, kit_t yxKits);
 
 	/** calculates width/height within current kit */
-	 pixel calcSizeOnKit(pixel xy, pixel wh, kit xyKit, kit xyOnKit, kit startKitXY, kit endKitXY);
+	 pixel_t calcSizeOnKit(pixel_t xy, pixel_t wh, kit_t xyKit, kit_t xyOnKit, kit_t startKitXY, kit_t endKitXY);
 
 	/** Passes kd by value, because values will get modified inside function */
 	 void paintOnKit(KitData kd, uint8_t **data);

@@ -1,6 +1,6 @@
 #include <AnimatedTextArea.h>
 
-AnimatedTextArea::AnimatedTextArea(Display *display, pixel boxWidth, uint16_t animationDelayMs, uint8_t id) :
+AnimatedTextArea::AnimatedTextArea(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id) :
 		TextArea(display, boxWidth), animationDelayMs(animationDelayMs), id(id) {
 	this->lastFrameTimeMs = 0;
 }
