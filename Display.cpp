@@ -13,7 +13,7 @@ Display::Display(kit_t xKits, kit_t yKits, ss_t **ss) :
 }
 
 Display::~Display() {
-	delete2DArray(screen, rows, xKits);
+	delete2DArray(screen, rows);
 }
 
 void Display::flush() {

@@ -1,4 +1,4 @@
-#include <ScrollingTextArea.h>
+#include "ScrollingTextArea.h"
 
 ScrollingTextArea::ScrollingTextArea(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id) :
 		AnimatedTextArea(display, boxWidth, animationDelayMs, id) {
@@ -8,15 +8,19 @@ ScrollingTextArea::ScrollingTextArea(Display *display, pixel_t boxWidth, uint16_
 	this->y = 0;
 	this->chars = NULL;
 	this->loop = false;
-	this->mainState = new ScrollingTextArea::MainState(*this);
-	this->endState = new ScrollingTextArea::EndState(*this);
-	this->charState = new ScrollingTextArea::CharState(*this);
-	this->noopState = new ScrollingTextArea::NoopState();
-	this->stateMashine = noopState;
+
+	ScrollingTextArea::MainState *mainState = new ScrollingTextArea::MainState(*this);
+	ScrollingTextArea::CharState *charState = new ScrollingTextArea::CharState(*this);
+	ScrollingTextArea::EndState *endState = new ScrollingTextArea::EndState(*this);
+	this->mashineDriver = new MashineDriver(3, mainState, charState, endState);
+}
+
+ScrollingTextArea::~ScrollingTextArea() {
+	delete (mashineDriver);
 }
 
 void ScrollingTextArea::stop() {
-	changeState(STATE_NOOP);
+	mashineDriver->changeState(StateMashine::STATE_NOOP);
 	freeScChars();
 }
 
@@ -41,54 +45,16 @@ void ScrollingTextArea::scroll(pixel_t x, pixel_t y, boolean loop, uint8_t chars
 	}
 	va_end(va);
 
-	changeState(STATE_MAIN);
+	mashineDriver->changeState(STATE_MAIN);
 }
 
-void ScrollingTextArea::changeState(state_t state) {
-	switch (state) {
-	case STATE_NOCHANGE:
-		return;
-
-	case STATE_MAIN:
-#if DEBUG_TA
-		debug(F("Next state: STATE_MAIN"));
-#endif
-		stateMashine = mainState;
-		break;
-
-	case STATE_CHAR:
-#if DEBUG_TA
-		debug(F("Next state: STATE_CHAR"));
-#endif
-		stateMashine = charState;
-		break;
-
-	case STATE_END:
-#if DEBUG_TA
-		debug(F("Next state: STATE_END"));
-#endif
-		stateMashine = endState;
-		break;
-
-	default:
-	case STATE_NOOP:
-#if DEBUG_TA
-		debug(F("Next state: STATE_NOOP"));
-#endif
-		stateMashine = noopState;
-		break;
-	}
-
-	stateMashine->init();
-}
 
 void ScrollingTextArea::nextFrame() {
 #if DEBUG_TA
 	debug(F("Next frame in Text Area"));
 #endif
 
-	uint8_t stateInt = stateMashine->execute();
-	changeState(static_cast<state_t>(stateInt));
+	mashineDriver->execute();
 }
 
 // ################ MainState ################
@@ -113,7 +79,7 @@ uint8_t ScrollingTextArea::MainState::execute() {
 
 	// copy next font into first off screen bye on the right
 	font8x8_copy(sta.data, xDataBufIdx, nextChar);
-	return ScrollingTextArea::STATE_NOCHANGE;
+	return StateMashine::STATE_NOCHANGE;
 }
 
 void ScrollingTextArea::freeScChars() {
@@ -124,7 +90,6 @@ void ScrollingTextArea::freeScChars() {
 	chars = NULL;
 	charsSize = 0;
 }
-
 
 // ################ CharState ################
 ScrollingTextArea::CharState::CharState(ScrollingTextArea& sta) :
@@ -150,7 +115,7 @@ uint8_t ScrollingTextArea::CharState::execute() {
 		return ScrollingTextArea::STATE_MAIN;
 	}
 
-	return ScrollingTextArea::STATE_NOCHANGE;
+	return StateMashine::STATE_NOCHANGE;
 }
 
 // ################ EndState ################
@@ -169,7 +134,7 @@ uint8_t ScrollingTextArea::EndState::execute() {
 		if (sta.loop) {
 			state = ScrollingTextArea::STATE_MAIN;
 		} else {
-			state = ScrollingTextArea::STATE_NOOP;
+			state = StateMashine::STATE_NOOP;
 		}
 		return state;
 	}
@@ -182,16 +147,6 @@ uint8_t ScrollingTextArea::EndState::execute() {
 #endif
 	sta.display->paint(sta.x, sta.y, sta.boxWidth, 8, sta.data);
 
-	return ScrollingTextArea::STATE_NOCHANGE;
+	return StateMashine::STATE_NOCHANGE;
 }
 
-// ################ NoopState ################
-ScrollingTextArea::NoopState::NoopState() {
-}
-
-void ScrollingTextArea::NoopState::init() {
-}
-
-uint8_t ScrollingTextArea::NoopState::execute() {
-	return ScrollingTextArea::STATE_NOCHANGE;
-}

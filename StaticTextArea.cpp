@@ -1,4 +1,4 @@
-#include <StaticTextArea.h>
+#include "StaticTextArea.h"
 
 StaticTextArea::StaticTextArea(Display *display, pixel_t boxWidth) :
 		TextArea(display, boxWidth) {

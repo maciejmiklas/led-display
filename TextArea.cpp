@@ -12,5 +12,5 @@ TextArea::TextArea(Display *display, pixel_t boxWidth) :
 }
 
 TextArea::~TextArea() {
-	delete2DArray(data, FONT8_HEIGHT, xDataSize);
+	delete2DArray(data, FONT8_HEIGHT);
 }

@@ -3,12 +3,14 @@
 
 #include "AnimatedTextArea.h"
 #include "StateMashine.h"
+#include "MashineDriver.h"
 
 class ScrollingTextArea: public AnimatedTextArea {
 
 public:
 	ScrollingTextArea(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
 	void scroll(pixel_t x, pixel_t y, boolean loop, uint8_t chars, ...);
+	virtual ~ScrollingTextArea();
 
 protected:
 	virtual void nextFrame();
@@ -16,17 +18,15 @@ protected:
 
 private:
 	enum state_t {
-		STATE_NOCHANGE = 0, STATE_MAIN = 1, STATE_CHAR = 2, STATE_END = 3, STATE_NOOP = 4
+		STATE_MAIN = 0, STATE_CHAR = 1, STATE_END = 2
 	};
-
+	MashineDriver *mashineDriver;
 	pixel_t x;
 	pixel_t y;
 	uint8_t charsSize;
 	uint8_t *chars;
 	boolean loop;
-	StateMashine *stateMashine;
 	void freeScChars();
-	void changeState(state_t state);
 
 	/**
 	 * Scrolls main part of the text, meaning the whole text starting with empty display and
@@ -41,7 +41,6 @@ private:
 		uint8_t charsIdx;
 		ScrollingTextArea& sta;
 	};
-	MainState *mainState;
 
 	/**
 	 * Sub-state of Main State - it's responsible for scrolling of a single character.
@@ -55,7 +54,6 @@ private:
 		ScrollingTextArea& sta;
 		uint8_t wIdx;
 	};
-	CharState *charState;
 
 	/**
 	 * Scrolls characters remaining in screen buffer to the end of the display. This is the ending animation, once it's
@@ -71,18 +69,7 @@ private:
 		uint8_t charsIdx;
 		ScrollingTextArea& sta;
 	};
-	EndState *endState;
 
-	/**
-	 * Does nothing ;)
-	 */
-	class NoopState: public StateMashine {
-	public:
-		NoopState();
-		virtual uint8_t execute();
-		virtual void init();
-	};
-	NoopState *noopState;
 };
 
 #endif /* SCROLLINGTEXTAREA_H_ */
