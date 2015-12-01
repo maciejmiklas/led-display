@@ -1,6 +1,6 @@
 #include "ScrollingTextArea.h"
 
-ScrollingTextArea::ScrollingTextArea(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id) :
+ScrollingTextArea::ScrollingTextArea(Display* display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id) :
 		AnimatedTextArea(display, boxWidth, animationDelayMs, id) {
 
 	this->charsSize = 0;
@@ -8,20 +8,22 @@ ScrollingTextArea::ScrollingTextArea(Display *display, pixel_t boxWidth, uint16_
 	this->y = 0;
 	this->chars = NULL;
 	this->loop = false;
+}
 
+MachineDriver* ScrollingTextArea::createDriver() {
 	ScrollingTextArea::MainState *mainState = new ScrollingTextArea::MainState(*this);
 	ScrollingTextArea::CharState *charState = new ScrollingTextArea::CharState(*this);
 	ScrollingTextArea::EndState *endState = new ScrollingTextArea::EndState(*this);
-	this->mashineDriver = new MashineDriver(3, mainState, charState, endState);
+	MachineDriver* machineDriver = new MachineDriver(3, mainState, charState, endState);
+	return machineDriver;
 }
 
-ScrollingTextArea::~ScrollingTextArea() {
-	delete (mashineDriver);
-}
-
-void ScrollingTextArea::stop() {
-	mashineDriver->changeState(StateMashine::STATE_NOOP);
+void ScrollingTextArea::onStop() {
 	freeScChars();
+}
+
+void ScrollingTextArea::paintBuffer() {
+	display->paint(x, y, boxWidth, 8, data);
 }
 
 void ScrollingTextArea::scroll(pixel_t x, pixel_t y, boolean loop, uint8_t charsSize, ...) {
@@ -45,16 +47,7 @@ void ScrollingTextArea::scroll(pixel_t x, pixel_t y, boolean loop, uint8_t chars
 	}
 	va_end(va);
 
-	mashineDriver->changeState(STATE_MAIN);
-}
-
-
-void ScrollingTextArea::nextFrame() {
-#if DEBUG_TA
-	debug(F("Next frame in Text Area"));
-#endif
-
-	mashineDriver->execute();
+	resetState();
 }
 
 // ################ MainState ################
@@ -74,12 +67,12 @@ uint8_t ScrollingTextArea::MainState::execute() {
 	const uint8_t xDataBufIdx = sta.xDataSize - 1;
 	uint8_t nextChar = sta.chars[charsIdx++];
 #if DEBUG_TA
-	debug(F("Next char %d"), nextChar);
+	debug(F("Next char: %d"), nextChar);
 #endif
 
 	// copy next font into first off screen bye on the right
 	font8x8_copy(sta.data, xDataBufIdx, nextChar);
-	return StateMashine::STATE_NOCHANGE;
+	return STATE_CHAR;
 }
 
 void ScrollingTextArea::freeScChars() {
@@ -101,14 +94,14 @@ void ScrollingTextArea::CharState::init() {
 }
 
 uint8_t ScrollingTextArea::CharState::execute() {
-// scroll 8 bits from left to right
+	// scroll 8 bits from left to right
 	for (uint8_t hIdx = 0; hIdx < FONT8_HEIGHT; hIdx++) {
 		shiftL(sta.data[hIdx], sta.xDataSize);
 	}
 #if DEBUG_TA
-	debug(F("Paint font line %d"), wIdx);
+	debug(F("Display shift: %d"), wIdx);
 #endif
-	sta.display->paint(sta.x, sta.y, sta.boxWidth, 8, sta.data);
+	sta.paintBuffer();
 
 	wIdx++;
 	if (wIdx == FONT8_WIDTH) {
@@ -143,9 +136,9 @@ uint8_t ScrollingTextArea::EndState::execute() {
 		shiftL(sta.data[hIdx], sta.xDataSize);
 	}
 #if DEBUG_TA
-	debug(F("Paint font line %d"), charsIdx);
+	debug(F("Display end shift: %d"), wIdx);
 #endif
-	sta.display->paint(sta.x, sta.y, sta.boxWidth, 8, sta.data);
+	sta.paintBuffer();
 
 	return StateMashine::STATE_NOCHANGE;
 }

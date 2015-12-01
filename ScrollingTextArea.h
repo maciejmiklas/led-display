@@ -3,7 +3,7 @@
 
 #include "AnimatedTextArea.h"
 #include "StateMashine.h"
-#include "MashineDriver.h"
+#include "MachineDriver.h"
 
 class ScrollingTextArea: public AnimatedTextArea {
 
@@ -11,22 +11,23 @@ public:
 	ScrollingTextArea(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
 	void scroll(pixel_t x, pixel_t y, boolean loop, uint8_t chars, ...);
 	virtual ~ScrollingTextArea();
-
 protected:
-	virtual void nextFrame();
-	virtual void stop();
+	virtual void onStop();
+	virtual MachineDriver* createDriver();
 
 private:
 	enum state_t {
 		STATE_MAIN = 0, STATE_CHAR = 1, STATE_END = 2
 	};
-	MashineDriver *mashineDriver;
 	pixel_t x;
 	pixel_t y;
 	uint8_t charsSize;
 	uint8_t *chars;
+
+	/** plays text animation in a loop. In this case #isRunning() always returns true. */
 	boolean loop;
 	void freeScChars();
+	void paintBuffer();
 
 	/**
 	 * Scrolls main part of the text, meaning the whole text starting with empty display and

@@ -3,6 +3,7 @@
 
 #include "TextArea.h"
 #include "Util.h"
+#include "MachineDriver.h"
 
 /**
  * Subclasses of this class are displaying animated text within a box.
@@ -18,18 +19,29 @@ public:
 	 * with right timing.
 	 */
 	void cycle();
-	virtual void stop() const = 0;
+
+	/** returns true if animation is currently being played. */
+	boolean isRunning();
+
+	void stop();
+	virtual ~AnimatedTextArea();
 
 protected:
-	AnimatedTextArea(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
-	virtual void nextFrame() const = 0;
+	AnimatedTextArea(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t tid);
 
 	/** Unique id used for logging */
-	const uint8_t id;
+	const uint8_t tid;
+
+	virtual MachineDriver* createDriver() const = 0;
+	virtual void onStop() const = 0;
+	void resetState();
 
 private:
+	MachineDriver *driver;
+
 	/** Time when the last frame has been animated. */
 	uint16_t lastFrameTimeMs;
+
 	const uint16_t animationDelayMs;
 };
 
