@@ -8,8 +8,8 @@
 class ScrollingTextArea: public AnimatedTextArea {
 
 public:
-	ScrollingTextArea(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
-	void scroll(pixel_t x, pixel_t y, boolean loop, uint8_t chars, ...);
+	ScrollingTextArea(Display* display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
+	void scroll(pixel_t x, pixel_t y, boolean loop, char* text);
 	virtual ~ScrollingTextArea();
 protected:
 	virtual void onStop();
@@ -21,13 +21,12 @@ private:
 	};
 	pixel_t x;
 	pixel_t y;
-	uint8_t charsSize;
-	uint8_t *chars;
+	char* text;
 
 	/** plays text animation in a loop. In this case #isRunning() always returns true. */
 	boolean loop;
 	void freeScChars();
-	void paintBuffer();
+	void paint();
 
 	/**
 	 * Scrolls main part of the text, meaning the whole text starting with empty display and
@@ -35,12 +34,13 @@ private:
 	 */
 	class MainState: public StateMashine {
 	public:
-		MainState(ScrollingTextArea& sta);
+		MainState(ScrollingTextArea* sta);
+		virtual ~MainState();
 		virtual uint8_t execute();
 		virtual void init();
 	private:
 		uint8_t charsIdx;
-		ScrollingTextArea& sta;
+		ScrollingTextArea* sta;
 	};
 
 	/**
@@ -48,11 +48,12 @@ private:
 	 */
 	class CharState: public StateMashine {
 	public:
-		CharState(ScrollingTextArea& sta);
+		CharState(ScrollingTextArea* sta);
+		virtual ~CharState();
 		virtual uint8_t execute();
 		virtual void init();
 	private:
-		ScrollingTextArea& sta;
+		ScrollingTextArea* sta;
 		uint8_t wIdx;
 	};
 
@@ -63,14 +64,19 @@ private:
 	 */
 	class EndState: public StateMashine {
 	public:
-		EndState(ScrollingTextArea& sta);
+		virtual ~EndState();
+		EndState(ScrollingTextArea* sta);
 		virtual uint8_t execute();
 		virtual void init();
 	private:
 		uint8_t charsIdx;
-		ScrollingTextArea& sta;
+		ScrollingTextArea* sta;
 	};
 
+	MainState mainState;
+	CharState charState;
+	EndState endState;
+	MachineDriver machineDriver;
 };
 
 #endif /* SCROLLINGTEXTAREA_H_ */

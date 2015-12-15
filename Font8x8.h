@@ -15,7 +15,7 @@ const uint8_t FONT8_HEIGHT = 8;
 
 #define DEBUG_FO false
 
-PROGMEM extern const uint8_t FONT8[FONT8_SIZE][FONT8_HEIGHT];
+PROGMEM extern const char FONT8[FONT8_SIZE][FONT8_HEIGHT];
 
 void font8x8_copy(uint8_t **data, uint8_t dataIdx, uint8_t fontIdx);
 

@@ -115,11 +115,9 @@ private:
 
 	/**
 	 * Slave Select lines reflecting positions of 8x8-Matrices on the Displays. It has the same orientation as
-	 * #screen.
-	 *
-	 * #ss contains Select Slave lines for 8x8-LED-Kits, The first coordinate in table indicates horizontal
-	 * position, second vertical: #ss[horizontal][vertical], this gives us dimensions:
-	 * #ss[0][0] -> ss[xKits-1][yKits-1]
+	 * the #screen.
+	 * The first coordinate in table indicates vertical position, second horizontal: #ss[vertical][horizontal],
+	 * this gives us dimensions: #ss[0][0] -> ss[yKits-1][xKits-1]
 	 */
 	ss_t **ss;
 
@@ -136,11 +134,13 @@ private:
 	 * keep pixel state in RAM in order to calculate row value for case when more then one sprite has to be displayed
 	 * on single LED-Kit.
 	 * Print method displays single sprite that eventually crosses few LED-Kits, we have only to set pixels for this
-	 * sprite without affecting it direct neighbors. We have to calculate byte (row has 8 pixels) for single row on
-	 * particular kit that contains pixels for already painted sprite and from new one.
+	 * sprite without affecting it direct neighbors. We have to calculate byte (8 pixels) for single row on
+	 * particular kit that contains pixels for already painted sprite and for new one.
 	 *
-	 * First dimension in display data indicates row, second kit. For example #screen[2][3] indicates
+	 * First dimension in #screen indicates row, second kit (#screen[row][kit]). For example #screen[2][3] indicates
 	 * 3rd row on 4th kit (starting form 0).
+	 * Going over rows (first dimension) we are traversing the display from top to bottom, pixel by pixel.
+	 * Traversing over second dimension of #screen array moves us by 8 pixels with each byte.
 	 */
 	uint8_t **screen;
 

@@ -14,14 +14,13 @@ void AnimatedTextArea::cycle() {
 		return;
 	}
 #if DEBUG_TA
-	debug(F("Next frame(%d)"), tid);
+	log(F("Next frame(%d)"), tid);
 #endif
 	driver->execute();
 	lastFrameTimeMs = time;
 }
 
 AnimatedTextArea::~AnimatedTextArea() {
-	delete (driver);
 }
 
 boolean AnimatedTextArea::isRunning() {

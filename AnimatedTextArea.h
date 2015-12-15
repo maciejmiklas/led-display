@@ -32,8 +32,9 @@ protected:
 	/** Unique id used for logging */
 	const uint8_t tid;
 
-	virtual MachineDriver* createDriver() const = 0;
-	virtual void onStop() const = 0;
+	/** Created driver will be deleted in ~AnimatedTextArea() */
+	virtual MachineDriver* createDriver() = 0;
+	virtual void onStop() = 0;
 	void resetState();
 
 private:

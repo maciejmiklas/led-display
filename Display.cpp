@@ -21,16 +21,32 @@ void Display::flush() {
 	debug(F("Flushing display"));
 #endif
 
-	for (uint8_t ssY = 0; ssY < yKits; ssY++) {
-		for (uint8_t ssX = 0; ssX < xKits; ssX++) {
-			uint8_t row = ssY * KIT_DIM;
-			ss_t ssval = ss[ssX][ssY];
-			for (uint8_t line = REG_DIGIT0; line <= REG_DIGIT7; line++) {
-				send(ssval, line, screen[row][ssX]);
-				row++;
+	/*
+		for (kit_t ssY = 0; ssY < yKits; ssY++) {
+			for (kit_t ssX = 0; ssX < xKits; ssX++) {
+				ss_t ssval = ss[ssY][ssX];
+				uint8_t row = ssY * KIT_DIM;
+				for (uint8_t line = REG_DIGIT0; line <= REG_DIGIT7; line++) {
+					send(ssval, line, screen[row++][ssX]);
+				}
 			}
 		}
+	*/
+
+	for (kit_t yKit = 0; yKit < yKits; yKit++) {
+		uint8_t displayRow = yKit * KIT_DIM;
+		ss_t *ssXRf = ss[yKit];
+		for (uint8_t kitRow = REG_DIGIT0; kitRow <= REG_DIGIT7; kitRow++) {
+			uint8_t *screenXRef = screen[displayRow];
+			for (kit_t xKit = 0; xKit < xKits; xKit++) {
+				ss_t ssAddress = ssXRf[xKit];
+				uint8_t screenByte = screenXRef[xKit];
+				send(ssAddress, kitRow, screenByte);
+			}
+			displayRow++;
+		}
 	}
+
 }
 
 void Display::setup() {
@@ -59,7 +75,7 @@ void Display::setupMax() {
 #endif
 	for (uint8_t ssY = 0; ssY < yKits; ssY++) {
 		for (uint8_t ssX = 0; ssX < xKits; ssX++) {
-			setupMax(ss[ssX][ssY]);
+			setupMax(ss[ssY][ssX]);
 		}
 	}
 }
@@ -72,7 +88,8 @@ inline kit_t Display::calcEndKit(pixel_t xy, pixel_t wh, kit_t yxKits) {
 	return min(((xy + wh - 1) / KIT_DIM), yxKits - 1);
 }
 
-inline pixel_t Display::calcSizeOnKit(pixel_t xy, pixel_t wh, kit_t xyKit, kit_t xyOnKit, kit_t startKitXY, kit_t endKitXY) {
+inline pixel_t Display::calcSizeOnKit(pixel_t xy, pixel_t wh, kit_t xyKit, kit_t xyOnKit, kit_t startKitXY,
+		kit_t endKitXY) {
 	uint8_t widthOnKit = 0;
 	if (xyKit == startKitXY) { // first kit
 		widthOnKit = min(wh, KIT_DIM - xyOnKit);
