@@ -1,6 +1,6 @@
-#include "ScrollingTextArea.h"
+#include "Scrolling8x8TextArea.h"
 
-ScrollingTextArea::ScrollingTextArea(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id) :
+Scrolling8x8TextArea::Scrolling8x8TextArea(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id) :
 		AnimatedTextArea(display, boxWidth, animationDelayMs, id), mainState(this), charState(this), endState(this),
 		machineDriver(3, &mainState, &charState, &endState){
 
@@ -10,38 +10,36 @@ ScrollingTextArea::ScrollingTextArea(Display *display, pixel_t boxWidth, uint16_
 	this->loop = false;
 }
 
-ScrollingTextArea::~ScrollingTextArea() {
+Scrolling8x8TextArea::~Scrolling8x8TextArea() {
 
 }
 
-MachineDriver* ScrollingTextArea::createDriver() {
+MachineDriver* Scrolling8x8TextArea::createDriver() {
 	return &machineDriver;
 }
 
-void ScrollingTextArea::onStop() {
+void Scrolling8x8TextArea::onStop() {
 	freeScChars();
 }
 
-void ScrollingTextArea::paint() {
+void Scrolling8x8TextArea::paint() {
 	display->paint(x, y, boxWidth, 8, data);
 }
 
-void ScrollingTextArea::scroll(pixel_t x, pixel_t y, boolean loop, char *text) {
+void Scrolling8x8TextArea::scroll(pixel_t x, pixel_t y, boolean loop, char *text) {
 #if DEBUG_TA
-	debug(F("Scroll text on (%d,%d) with %d chars"), x, y, text);
+	log(F("Scroll text on (%d,%d) with %d chars"), x, y, text);
 #endif
 
 	freeScChars();
-
 	this->x = x;
 	this->y = y;
 	this->loop = loop;
 	this->text = text;
-
 	resetState();
 }
 
-void ScrollingTextArea::freeScChars() {
+void Scrolling8x8TextArea::freeScChars() {
 	if (text == NULL) {
 		return;
 	}
@@ -49,26 +47,26 @@ void ScrollingTextArea::freeScChars() {
 }
 
 // ################ MainState ################
-ScrollingTextArea::MainState::MainState(ScrollingTextArea* sta) :
+Scrolling8x8TextArea::MainState::MainState(Scrolling8x8TextArea* sta) :
 		sta(sta) {
 	this->charsIdx = 0;
 }
 
-ScrollingTextArea::MainState::~MainState() {
+Scrolling8x8TextArea::MainState::~MainState() {
 }
 
-void ScrollingTextArea::MainState::init() {
+void Scrolling8x8TextArea::MainState::init() {
 	charsIdx = 0;
 }
 
-uint8_t ScrollingTextArea::MainState::execute() {
+uint8_t Scrolling8x8TextArea::MainState::execute() {
 	char nextChar = sta->text[charsIdx++];
 #if DEBUG_TA
-	debug(F("Next char: %d"), nextChar);
+	log(F("Next char: %d"), nextChar);
 #endif
 
 	if (nextChar == '\0') {
-		return ScrollingTextArea::STATE_END;
+		return Scrolling8x8TextArea::STATE_END;
 	}
 	// copy next font into first off screen bye on the right
 	font8x8_copy(sta->data, sta->xDataOffScrIdx, nextChar);
@@ -76,54 +74,54 @@ uint8_t ScrollingTextArea::MainState::execute() {
 }
 
 // ################ CharState ################
-ScrollingTextArea::CharState::CharState(ScrollingTextArea* sta) :
+Scrolling8x8TextArea::CharState::CharState(Scrolling8x8TextArea* sta) :
 		sta(sta) {
 	this->wIdx = 0;
 }
 
-ScrollingTextArea::CharState::~CharState() {
+Scrolling8x8TextArea::CharState::~CharState() {
 }
 
-void ScrollingTextArea::CharState::init() {
+void Scrolling8x8TextArea::CharState::init() {
 	wIdx = 0;
 }
 
-uint8_t ScrollingTextArea::CharState::execute() {
+uint8_t Scrolling8x8TextArea::CharState::execute() {
 	// scroll 8 bits from left to right
 	for (uint8_t hIdx = 0; hIdx < FONT8_HEIGHT; hIdx++) {
 		shiftL(sta->data[hIdx], sta->xDataSize);
 	}
 #if DEBUG_TA
-	debug(F("Display shift: %d"), wIdx);
+	log(F("Display shift: %d"), wIdx);
 #endif
 	sta->paint();
 
 	wIdx++;
 	if (wIdx == FONT8_WIDTH) {
-		return ScrollingTextArea::STATE_MAIN;
+		return Scrolling8x8TextArea::STATE_MAIN;
 	}
 
 	return StateMashine::STATE_NOCHANGE;
 }
 
 // ################ EndState ################
-ScrollingTextArea::EndState::EndState(ScrollingTextArea* sta) :
+Scrolling8x8TextArea::EndState::EndState(Scrolling8x8TextArea* sta) :
 		sta(sta) {
 	this->charsIdx = 0;
 }
 
-ScrollingTextArea::EndState::~EndState() {
+Scrolling8x8TextArea::EndState::~EndState() {
 }
 
-void ScrollingTextArea::EndState::init() {
+void Scrolling8x8TextArea::EndState::init() {
 	charsIdx = 0;
 }
 
-uint8_t ScrollingTextArea::EndState::execute() {
+uint8_t Scrolling8x8TextArea::EndState::execute() {
 	if (charsIdx == sta->boxWidth + FONT8_WIDTH) {
 		uint8_t state;
 		if (sta->loop) {
-			state = ScrollingTextArea::STATE_MAIN;
+			state = Scrolling8x8TextArea::STATE_MAIN;
 		} else {
 			state = StateMashine::STATE_NOOP;
 		}
@@ -134,7 +132,7 @@ uint8_t ScrollingTextArea::EndState::execute() {
 		shiftL(sta->data[hIdx], sta->xDataSize);
 	}
 #if DEBUG_TA
-	debug(F("Display end shift: %d"), charsIdx);
+	log(F("Display end shift: %d"), charsIdx);
 #endif
 	sta->paint();
 

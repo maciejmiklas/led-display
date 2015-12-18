@@ -24,6 +24,7 @@ public:
 	boolean isRunning();
 
 	void stop();
+	void init();
 	virtual ~AnimatedTextArea();
 
 protected:

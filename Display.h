@@ -113,14 +113,6 @@ public:
 	void flush();
 private:
 
-	/**
-	 * Slave Select lines reflecting positions of 8x8-Matrices on the Displays. It has the same orientation as
-	 * the #screen.
-	 * The first coordinate in table indicates vertical position, second horizontal: #ss[vertical][horizontal],
-	 * this gives us dimensions: #ss[0][0] -> ss[yKits-1][xKits-1]
-	 */
-	ss_t **ss;
-
 	/** Horizontal amount of 8x8-Matrices, known as Kits */
 	const kit_t xKits;
 
@@ -128,6 +120,14 @@ private:
 	const kit_t yKits;
 
 	const uint8_t rows;
+
+	/**
+	 * Slave Select lines reflecting positions of 8x8-Matrices on the Displays. It has the same orientation as
+	 * the #screen.
+	 * The first coordinate in table indicates vertical position, second horizontal: #ss[vertical][horizontal],
+	 * this gives us dimensions: #ss[0][0] -> ss[yKits-1][xKits-1]
+	 */
+	ss_t ** const ss;
 
 	/**
 	 * It's a two dimensional array containing pixels for LED-Kits. Each LED-Kit has embedded memory, but we need to
@@ -142,7 +142,7 @@ private:
 	 * Going over rows (first dimension) we are traversing the display from top to bottom, pixel by pixel.
 	 * Traversing over second dimension of #screen array moves us by 8 pixels with each byte.
 	 */
-	uint8_t **screen;
+	uint8_t ** const screen;
 
 	/**
 	 * Contains data for each LED-Kit. Painting procedure goes over all kits and KitData will get recalculated

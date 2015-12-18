@@ -6,7 +6,7 @@
 #include "Util.h"
 #include "Font8x8.h"
 
-#define DEBUG_TA false
+#define DEBUG_TA true
 
 /**
  * This class provides various possibilities to display and animate 8x8 font.

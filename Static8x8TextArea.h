@@ -1,25 +1,22 @@
-/*
- * StaticTextArea.h
- *
- *  Created on: Sep 28, 2015
- *      Author: mmiklas
- */
-
-#ifndef STATICTEXTAREA_H_
-#define STATICTEXTAREA_H_
+#ifndef STATIC8x8TEXTAREA_H_
+#define STATIC8x8TEXTAREA_H_
 
 #include <TextArea.h>
 
 /**
  * Contains methods showing static text within given box. Each method displays text once and that's it.
+ *
+ * This class can only display 8x8 font. There are two reasons for it: the size was fine and the implementation easy.
+ * Display consist of vertical lines (rows) where each one is represented by byte array, and each byte in this array
+ * controls 8 pixels. Font size is also 8 - meaning that we can directly copy fonts into display without byte shifting.
  */
-class StaticTextArea: public TextArea {
+class Static8x8TextArea: public TextArea {
 public:
 
 	/**
 	 * #boxWidth is the width in pixels. Height is always set to 8 pixels - it's determined by character size.
 	 */
-	StaticTextArea(Display *display, pixel_t boxWidth);
+	Static8x8TextArea(Display *display, pixel_t boxWidth);
 
 	/**
 	 * Displays text in a box placed on display on (x,y) and limited by #boxWidth, height is set to 8.

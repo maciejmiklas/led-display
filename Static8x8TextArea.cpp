@@ -1,10 +1,10 @@
-#include "StaticTextArea.h"
+#include "Static8x8TextArea.h"
 
-StaticTextArea::StaticTextArea(Display *display, pixel_t boxWidth) :
+Static8x8TextArea::Static8x8TextArea(Display *display, pixel_t boxWidth) :
 		TextArea(display, boxWidth) {
 }
 
-void StaticTextArea::box(pixel_t x, pixel_t y, uint8_t chars, ...) {
+void Static8x8TextArea::box(pixel_t x, pixel_t y, uint8_t chars, ...) {
 #if DEBUG_TA
 	log(F("Display text box on (%d,%d) with %d chars"), x, y, chars);
 #endif

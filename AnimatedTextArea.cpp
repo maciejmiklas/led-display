@@ -5,10 +5,12 @@ AnimatedTextArea::AnimatedTextArea(Display *display, pixel_t boxWidth, uint16_t 
 	this->lastFrameTimeMs = 0;
 }
 
+void AnimatedTextArea::init() {
+	log(F("A"));
+	driver = createDriver();
+	log(F("B"));
+}
 void AnimatedTextArea::cycle() {
-	if (driver == NULL) {
-		driver = createDriver();
-	}
 	uint32_t time = ms();
 	if (animationDelayMs > time - lastFrameTimeMs) {
 		return;
@@ -33,8 +35,5 @@ void AnimatedTextArea::stop() {
 }
 
 void AnimatedTextArea::resetState() {
-	if (driver == NULL) {
-		driver = createDriver();
-	}
 	driver->changeState(0);
 }
