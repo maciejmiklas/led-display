@@ -14,21 +14,8 @@ Display::~Display() {
 
 void Display::flush() {
 #if DEBUG_DI
-	log(F("Flushing display"));
+	log(F("Flushing display: %dx%d"), yKits, xKits);
 #endif
-
-	/*
-	 for (kit_t ssY = 0; ssY < yKits; ssY++) {
-	 for (kit_t ssX = 0; ssX < xKits; ssX++) {
-	 ss_t ssval = ss[ssY][ssX];
-	 uint8_t row = ssY * KIT_DIM;
-	 for (uint8_t line = REG_DIGIT0; line <= REG_DIGIT7; line++) {
-	 send(ssval, line, screen[row++][ssX]);
-	 }
-	 }
-	 }ń
-	 */
-
 	for (kit_t yKit = 0; yKit < yKits; yKit++) {
 		uint8_t displayRow = yKit * KIT_DIM;
 		ss_t *ssXRf = ss[yKit];
@@ -37,6 +24,9 @@ void Display::flush() {
 			for (kit_t xKit = 0; xKit < xKits; xKit++) {
 				ss_t ssAddress = ssXRf[xKit];
 				uint8_t screenByte = screenXRef[xKit];
+#if DEBUG_DI
+				log(F("Line: %dx%d - %d ss:%d"), yKit, xKit, kitRow, ssAddress);
+#endif
 				send(ssAddress, kitRow, screenByte);
 			}
 			displayRow++;
@@ -175,8 +165,8 @@ void Display::paint(pixel_t x, pixel_t y, pixel_t width, pixel_t height, uint8_t
 
 inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 #if DEBUG_DI
-	log(F("Paint on kit: k(%d,%d), kr(%d,%d) -> %dx%d, p(%d,%d) -> %dx%d"), kd.xKit, kd.yKit, kd.xRelKit,
-			kd.yRelKit, kd.xRelKitSize, kd.yRelKitSize, kd.xOnKit, kd.yOnKit, kd.xOnKitSize, kd.yOnKitSize);
+	log(F("Paint on kit: k(%d,%d), kr(%d,%d) -> %dx%d, p(%d,%d) -> %dx%d"), kd.xKit, kd.yKit, kd.xRelKit, kd.yRelKit,
+			kd.xRelKitSize, kd.yRelKitSize, kd.xOnKit, kd.yOnKit, kd.xOnKitSize, kd.yOnKitSize);
 #endif
 
 	// go over rows on single LED-Kit
@@ -264,8 +254,8 @@ inline uint8_t Display::shifted_firstKit(KitData *kd, uint8_t **data) {
 	char fyByte[9];
 	fbyte(yByte, fyByte);
 
-	log(F("-- shifted_firstKit (%d,%d) -> data[%d][0] = %s, screen[%d][%d] = %s"), kd->xOnKit, kd->yOnKit,
-			kd->yDataIdx, fyByte, kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
+	log(F("-- shifted_firstKit (%d,%d) -> data[%d][0] = %s, screen[%d][%d] = %s"), kd->xOnKit, kd->yOnKit, kd->yDataIdx,
+			fyByte, kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
 
 	return newDispByte;
@@ -290,8 +280,8 @@ inline uint8_t Display::shifted_middleKit(KitData *kd, uint8_t **data) {
 	char fyByteRight[9];
 	fbyte(yByteRight, fyByteRight);
 
-	log(F("-- shifted_middleKit (%d,%d) -> l-data[%d][%d] = %s, r-data[%d][%d] = %s, screen[%d][%d] = %s"),
-			kd->xOnKit, kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, fyByteLeft, kd->yDataIdx, kd->xRelKit, fyByteRight,
+	log(F("-- shifted_middleKit (%d,%d) -> l-data[%d][%d] = %s, r-data[%d][%d] = %s, screen[%d][%d] = %s"), kd->xOnKit,
+			kd->yOnKit, kd->yDataIdx, kd->xRelKit - 1, fyByteLeft, kd->yDataIdx, kd->xRelKit, fyByteRight,
 			kd->yOnScreenIdx, kd->xOnScreenIdx, fnewDispByte);
 #endif
 
