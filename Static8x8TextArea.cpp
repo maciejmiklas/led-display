@@ -5,7 +5,7 @@ Static8x8TextArea::Static8x8TextArea(Display *display, pixel_t boxWidth) :
 }
 
 void Static8x8TextArea::box(pixel_t x, pixel_t y, uint8_t chars, ...) {
-#if DEBUG_TA
+#if LOG_TA
 	log(F("Display text box on (%d,%d) with %d chars"), x, y, chars);
 #endif
 

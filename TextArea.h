@@ -6,7 +6,7 @@
 #include "Util.h"
 #include "Font8x8.h"
 
-#define DEBUG_TA false
+#define LOG_TA false
 
 /**
  * This class provides various possibilities to display and animate 8x8 font.
@@ -19,6 +19,7 @@ public:
 protected:
 	TextArea(Display *display, pixel_t boxWidth);
 	Display *display;
+	void clearDisplay();
 
 	/** Width in pixels of a box. */
 	const pixel_t boxWidth;

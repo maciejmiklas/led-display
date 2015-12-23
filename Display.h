@@ -5,7 +5,7 @@
 #include "SPI.h"
 #include "Log.h"
 
-#define DEBUG_DI false
+#define LOG_DI false
 #define SIMULATE_DI false
 
 /** One pixel - single LED. */

@@ -19,7 +19,6 @@ public:
 	void scroll(pixel_t x, pixel_t y, boolean loop, char* text);
 	virtual ~Scrolling8x8TextArea();
 protected:
-	virtual void onStop();
 	virtual MachineDriver* createDriver();
 
 private:
@@ -32,7 +31,6 @@ private:
 
 	/** plays text animation in a loop. In this case #isRunning() always returns true. */
 	boolean loop;
-	void freeScChars();
 	void paint();
 
 	/**
@@ -45,6 +43,8 @@ private:
 		virtual ~MainState();
 		virtual uint8_t execute();
 		virtual void init();
+		virtual void reset();
+		virtual boolean isIntermediate();
 	private:
 		uint8_t charsIdx;
 		Scrolling8x8TextArea* sta;
@@ -59,6 +59,8 @@ private:
 		virtual ~CharState();
 		virtual uint8_t execute();
 		virtual void init();
+		virtual void reset();
+		virtual boolean isIntermediate();
 	private:
 		Scrolling8x8TextArea* sta;
 		uint8_t wIdx;
@@ -75,6 +77,8 @@ private:
 		EndState(Scrolling8x8TextArea* sta);
 		virtual uint8_t execute();
 		virtual void init();
+		virtual void reset();
+		virtual boolean isIntermediate();
 	private:
 		uint8_t charsIdx;
 		Scrolling8x8TextArea* sta;
@@ -83,7 +87,9 @@ private:
 	MainState mainState;
 	CharState charState;
 	EndState endState;
-	MachineDriver machineDriver;
+
+	/** Variable should be never used due to OO design. We just have to keep references to driver to avoid GC. */
+	MachineDriver __machineDriver;
 };
 
 #endif /* SCROLLING8x8TEXTAREA_H_ */

@@ -1,8 +1,8 @@
 #include "Scrolling8x8TextArea.h"
 
 Scrolling8x8TextArea::Scrolling8x8TextArea(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id) :
-		AnimatedTextArea(display, boxWidth, animationDelayMs, id), mainState(this), charState(this), endState(this),
-		machineDriver(3, &mainState, &charState, &endState){
+		AnimatedTextArea(display, boxWidth, animationDelayMs, id), mainState(this), charState(this), endState(this), __machineDriver(
+				3, &mainState, &charState, &endState) {
 
 	this->x = 0;
 	this->y = 0;
@@ -15,11 +15,7 @@ Scrolling8x8TextArea::~Scrolling8x8TextArea() {
 }
 
 MachineDriver* Scrolling8x8TextArea::createDriver() {
-	return &machineDriver;
-}
-
-void Scrolling8x8TextArea::onStop() {
-	freeScChars();
+	return &__machineDriver;
 }
 
 void Scrolling8x8TextArea::paint() {
@@ -27,23 +23,16 @@ void Scrolling8x8TextArea::paint() {
 }
 
 void Scrolling8x8TextArea::scroll(pixel_t x, pixel_t y, boolean loop, char *text) {
-#if DEBUG_TA
-	log(F("Scroll text on (%d,%d) with %d chars"), x, y, text);
+#if LOG_TA
+	log(F("Scroll text on (%d,%d)"), x, y);
 #endif
 
-	freeScChars();
 	this->x = x;
 	this->y = y;
 	this->loop = loop;
 	this->text = text;
 	resetState();
-}
-
-void Scrolling8x8TextArea::freeScChars() {
-	if (text == NULL) {
-		return;
-	}
-	text = NULL;
+	clearDisplay();
 }
 
 // ################ MainState ################
@@ -55,14 +44,21 @@ Scrolling8x8TextArea::MainState::MainState(Scrolling8x8TextArea* sta) :
 Scrolling8x8TextArea::MainState::~MainState() {
 }
 
-void Scrolling8x8TextArea::MainState::init() {
+void Scrolling8x8TextArea::MainState::reset() {
 	charsIdx = 0;
+}
+
+boolean Scrolling8x8TextArea::MainState::isIntermediate() {
+	return true;
+}
+
+void Scrolling8x8TextArea::MainState::init() {
 }
 
 uint8_t Scrolling8x8TextArea::MainState::execute() {
 	char nextChar = sta->text[charsIdx++];
-#if DEBUG_TA
-	log(F("Next char: %d"), nextChar);
+#if LOG_TA
+	log(F("Next char: %d on %d"), nextChar, charsIdx);
 #endif
 
 	if (nextChar == '\0') {
@@ -82,6 +78,14 @@ Scrolling8x8TextArea::CharState::CharState(Scrolling8x8TextArea* sta) :
 Scrolling8x8TextArea::CharState::~CharState() {
 }
 
+boolean Scrolling8x8TextArea::CharState::isIntermediate() {
+	return false;
+}
+
+void Scrolling8x8TextArea::CharState::reset() {
+	init();
+}
+
 void Scrolling8x8TextArea::CharState::init() {
 	wIdx = 0;
 }
@@ -91,7 +95,7 @@ uint8_t Scrolling8x8TextArea::CharState::execute() {
 	for (uint8_t hIdx = 0; hIdx < FONT8_HEIGHT; hIdx++) {
 		shiftL(sta->data[hIdx], sta->xDataSize);
 	}
-#if DEBUG_TA
+#if LOG_TA
 	log(F("Display shift: %d"), wIdx);
 #endif
 	sta->paint();
@@ -113,6 +117,14 @@ Scrolling8x8TextArea::EndState::EndState(Scrolling8x8TextArea* sta) :
 Scrolling8x8TextArea::EndState::~EndState() {
 }
 
+boolean Scrolling8x8TextArea::EndState::isIntermediate() {
+	return false;
+}
+
+void Scrolling8x8TextArea::EndState::reset() {
+	init();
+}
+
 void Scrolling8x8TextArea::EndState::init() {
 	charsIdx = 0;
 }
@@ -121,7 +133,7 @@ uint8_t Scrolling8x8TextArea::EndState::execute() {
 	if (charsIdx == sta->boxWidth + FONT8_WIDTH) {
 		uint8_t state;
 		if (sta->loop) {
-			state = Scrolling8x8TextArea::STATE_MAIN;
+			state = StateMashine::STATE_RESET;
 		} else {
 			state = StateMashine::STATE_NOOP;
 		}
@@ -131,8 +143,8 @@ uint8_t Scrolling8x8TextArea::EndState::execute() {
 	for (uint8_t hIdx = 0; hIdx < FONT8_WIDTH; hIdx++) {
 		shiftL(sta->data[hIdx], sta->xDataSize);
 	}
-#if DEBUG_TA
-	log(F("Display end shift: %d"), charsIdx);
+#if LOG_TA
+	log(F("EndState charsIdx: %d"), charsIdx);
 #endif
 	sta->paint();
 
