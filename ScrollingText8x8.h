@@ -15,11 +15,11 @@
 class ScrollingText8x8: public AnimatedText8x8 {
 
 public:
-	ScrollingText8x8(Display* display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
+	ScrollingText8x8(Canvas* canvas, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
 	void scroll(pixel_t x, pixel_t y, boolean loop, char* text);
 	virtual ~ScrollingText8x8();
 protected:
-	virtual MachineDriver* createDriver();
+	MachineDriver* createDriver();
 
 private:
 	enum state_t {

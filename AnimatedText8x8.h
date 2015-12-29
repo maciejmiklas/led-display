@@ -4,7 +4,7 @@
 #include "Util.h"
 #include "MachineDriver.h"
 #include "Font8x8.h"
-#include "Display.h"
+#include "Canvas.h"
 
 #define FRAME_DELAY true
 
@@ -32,8 +32,10 @@ public:
 	void clearDisplay();
 
 protected:
-	AnimatedText8x8(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t tid);
+	AnimatedText8x8(Canvas *canvas, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t tid);
 	virtual ~AnimatedText8x8();
+
+	Canvas * const canvas;
 
 	/** Unique id used for logging */
 	const uint8_t tid;
@@ -41,8 +43,6 @@ protected:
 	/** Created driver will be deleted in ~AnimatedText8x8() */
 	virtual MachineDriver* createDriver() = 0;
 	void resetState();
-
-	Display * const display;
 
 	/** Width in pixels of a box. */
 	const pixel_t boxWidth;

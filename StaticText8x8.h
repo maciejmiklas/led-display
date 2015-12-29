@@ -1,7 +1,7 @@
 #ifndef STATIC8x8TEXTAREA_H_
 #define STATIC8x8TEXTAREA_H_
 
-#include "Display.h"
+#include "Canvas.h"
 #include "Util.h"
 #include "Font8x8.h"
 
@@ -18,7 +18,7 @@ public:
 	/**
 	 * #boxWidth is the width in pixels. Height is always set to 8 pixels - it's determined by character size.
 	 */
-	StaticText8x8(Display *display, pixel_t boxWidth);
+	StaticText8x8(Canvas *canvas, pixel_t boxWidth);
 	~StaticText8x8();
 
 	/**
@@ -32,7 +32,7 @@ public:
 	void clearDisplay();
 
 private:
-	Display * const display;
+	Canvas * const canvas;
 
 	/** Width in pixels of a box. */
 	const pixel_t boxWidth;

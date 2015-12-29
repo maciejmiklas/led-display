@@ -1,7 +1,7 @@
 #include "ScrollingText8x8.h"
 
-ScrollingText8x8::ScrollingText8x8(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id) :
-		AnimatedText8x8(display, boxWidth, animationDelayMs, id), x(0), y(0), text(NULL), loop(false), mainState(this), charState(
+ScrollingText8x8::ScrollingText8x8(Canvas *canvas, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id) :
+		AnimatedText8x8(canvas, boxWidth, animationDelayMs, id), x(0), y(0), text(NULL), loop(false), mainState(this), charState(
 				this), endState(this), __machineDriver(3, &mainState, &charState, &endState) {
 }
 
@@ -14,7 +14,7 @@ MachineDriver* ScrollingText8x8::createDriver() {
 }
 
 void ScrollingText8x8::paint() {
-	display->paint(x, y, boxWidth, 8, data);
+	canvas->paint(x, y, boxWidth, 8, data);
 }
 
 void ScrollingText8x8::scroll(pixel_t x, pixel_t y, boolean loop, char *text) {

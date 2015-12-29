@@ -4,25 +4,16 @@
 #include "Arduino.h"
 #include "SPI.h"
 #include "Log.h"
+#include "Canvas.h"
 
 #define LOG_DI false
 #define SIMULATE_DI false
-
-/** One pixel - single LED. */
-typedef uint8_t pixel_t;
 
 /** One LED-Kit - 8x8 LED Matrix. */
 typedef uint8_t kit_t;
 
 /** Slave Select line for max7219. */
 typedef uint8_t ss_t;
-
-/**
- * Dimension in pixels (LEDs) of LED-Matrix-Kit.
- * Currently #KIT_DIM is fixed to 8, because pixel data is stored in byte array and we are assuming,
- * that one byte fully covers one row on single LED-Kit.
- */
-const static uint8_t KIT_DIM = 8;
 
 // max7219 registers
 const static uint8_t REG_NOOP = 0x0;
@@ -74,30 +65,12 @@ const static uint8_t REG_DISPLAYTEST = 0xF;
  4 ........|........|........|........   (8,4)|(15,4)|(23,4)|(31,4)
  *
  */
-class Display {
+class Display: public Canvas {
 public:
 
 	Display(kit_t xKits, kit_t yKits, ss_t **ss);
 	~Display();
 
-	/**
-	 * Paints given matrix on the display starting at pixel on (x,y) position - this position is relative to top left
-	 * corner of whole display.
-	 * Matrix dimension in pixels is given by #width and #height. This gives us a following rectangle:
-	 * (x,y)-(#width-1,#height-1).
-	 *
-	 * Painted data can exceed display size, in this case it will be trimmed.
-	 *
-	 * Matrix data is stored in two dimensional array of bytes (#data), where single bit represents one pixel.
-	 * First position in #data array indicates row, second represents pixels within this row: #data[y][x]. Each byte
-	 * contains 8 pixels. For example: structure consisting of 5 rows and 14 pixels per row has dimension: data[5][2] -
-	 * we need two bytes per row to express 14 pixels. Also second byte of each row uses only first 6 bits -> 8 + 6 = 14
-	 *
-	 * Size of #data: #data[0][0] - #data[#height-1][#width/8]
-	 *
-	 * For example, matrix consisting of 3x2 bytes has maximal dimension 16(2*8) x 3 pixels,
-	 * which gives us a 48 pixels in total. We have 3 rows, each one has two bytes.
-	 */
 	void paint(pixel_t x, pixel_t y, pixel_t width, pixel_t height, uint8_t **data);
 
 	/** Initialized SPI and 8x8-Matrix elements. */

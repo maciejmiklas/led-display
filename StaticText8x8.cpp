@@ -1,7 +1,7 @@
 #include "StaticText8x8.h"
 
-StaticText8x8::StaticText8x8(Display *display, pixel_t boxWidth) :
-		display(display), boxWidth(boxWidth), xDataSize(boxWidth / KIT_DIM + 2), data(
+StaticText8x8::StaticText8x8(Canvas *canvas, pixel_t boxWidth) :
+		canvas(canvas), boxWidth(boxWidth), xDataSize(boxWidth / KIT_DIM + 2), data(
 				alloc2DArray8(FONT8_HEIGHT, xDataSize)) {
 }
 
@@ -19,7 +19,7 @@ void StaticText8x8::box(pixel_t x, pixel_t y, uint8_t chars, ...) {
 		uint8_t fontIdx = va_arg(va, int);
 		font8x8_copy(data, charIdx, fontIdx);
 	}
-	display->paint(x, y, boxWidth, 8, data);
+	canvas->paint(x, y, boxWidth, 8, data);
 	va_end(va);
 }
 
