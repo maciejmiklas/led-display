@@ -1,25 +1,48 @@
-#ifndef LD_TextArea_h
-#define LD_TextArea_h
+#ifndef ANIMATEDTEXTAREA_H_
+#define ANIMATEDTEXTAREA_H_
 
-#include "Arduino.h"
-#include "Display.h"
 #include "Util.h"
+#include "MachineDriver.h"
 #include "Font8x8.h"
+#include "Display.h"
 
-#define LOG_TA false
+#define FRAME_DELAY true
 
 /**
- * This class provides various possibilities to display and animate 8x8 font.
- * Font has to be stored in array in a special format - it's description can be found in: Font8x8.h
+ * Subclasses of this class are displaying animated text within a box.
+ *
  */
-class TextArea {
+class AnimatedText8x8 {
+
 public:
-	virtual ~TextArea();
+	/*
+	 * Animation consists of multiple frames where each one has to be displayed with right timing. The methods playing
+	 * particular animation are non blocking -> by calling method #animateXyz(....) we are initializing animation, in
+	 * order to play it you have to call method #cycle() - this method will ensure that next frame is being displayed
+	 * with right timing.
+	 */
+	void cycle();
+
+	/** returns true if animation is currently being played. */
+	boolean isRunning();
+
+	void stop();
+	void resume();
+	void init();
+	void clearDisplay();
 
 protected:
-	TextArea(Display *display, pixel_t boxWidth);
-	Display *display;
-	void clearDisplay();
+	AnimatedText8x8(Display *display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t tid);
+	virtual ~AnimatedText8x8();
+
+	/** Unique id used for logging */
+	const uint8_t tid;
+
+	/** Created driver will be deleted in ~AnimatedText8x8() */
+	virtual MachineDriver* createDriver() = 0;
+	void resetState();
+
+	Display * const display;
 
 	/** Width in pixels of a box. */
 	const pixel_t boxWidth;
@@ -38,7 +61,7 @@ protected:
 	 * scrolling area - this is a multiplication of 8 plus extra byte for offscreen buffer. This gives us following
 	 * bounds: #data[0][0] - #data[8][#boxWidth / 8 + 2].
 	 */
-	uint8_t **data;
+	uint8_t ** const data;
 
 	/**
 	 * Amount of columns (width) in #data (2D table). This is an amount of bytes in horizontal position.
@@ -52,7 +75,15 @@ protected:
 	/** Position to offscreen buffer byte of #data. */
 	const uint8_t xDataOffScrIdx;
 
+private:
+	MachineDriver *driver;
+
+	/** Time when the last frame has been animated. */
+	uint32_t lastFrameTimeMs;
+
+	const uint32_t animationDelayMs;
+
 	void copyChar(uint8_t dataIdx, uint8_t fontIdx);
 };
 
-#endif /* LD_TextArea_h */
+#endif /* ANIMATEDTEXTAREA_H_ */

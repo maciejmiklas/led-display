@@ -1,8 +1,8 @@
 #ifndef SCROLLING8x8TEXTAREA_H_
 #define SCROLLING8x8TEXTAREA_H_
 
-#include "AnimatedTextArea.h"
-#include "StateMashine.h"
+#include "AnimatedText8x8.h"
+#include "StateMachine.h"
 #include "MachineDriver.h"
 
 /**
@@ -12,12 +12,12 @@
  * Display consist of vertical lines (rows) where each one is represented by byte array, and each byte in this array
  * controls 8 pixels. Font size is also 8 - meaning that we can directly copy fonts into display without byte shifting.
  */
-class Scrolling8x8TextArea: public AnimatedTextArea {
+class ScrollingText8x8: public AnimatedText8x8 {
 
 public:
-	Scrolling8x8TextArea(Display* display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
+	ScrollingText8x8(Display* display, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
 	void scroll(pixel_t x, pixel_t y, boolean loop, char* text);
-	virtual ~Scrolling8x8TextArea();
+	virtual ~ScrollingText8x8();
 protected:
 	virtual MachineDriver* createDriver();
 
@@ -37,9 +37,9 @@ private:
 	 * Scrolls main part of the text, meaning the whole text starting with empty display and
 	 * ends when last letter appears on the left part of the display.
 	 */
-	class MainState: public StateMashine {
+	class MainState: public StateMachine {
 	public:
-		MainState(Scrolling8x8TextArea* sta);
+		MainState(ScrollingText8x8* sta);
 		virtual ~MainState();
 		virtual uint8_t execute();
 		virtual void init();
@@ -47,22 +47,22 @@ private:
 		virtual boolean isIntermediate();
 	private:
 		uint8_t charsIdx;
-		Scrolling8x8TextArea* sta;
+		ScrollingText8x8* sta;
 	};
 
 	/**
 	 * Sub-state of Main State - it's responsible for scrolling of a single character.
 	 */
-	class CharState: public StateMashine {
+	class CharState: public StateMachine {
 	public:
-		CharState(Scrolling8x8TextArea* sta);
+		CharState(ScrollingText8x8* sta);
 		virtual ~CharState();
 		virtual uint8_t execute();
 		virtual void init();
 		virtual void reset();
 		virtual boolean isIntermediate();
 	private:
-		Scrolling8x8TextArea* sta;
+		ScrollingText8x8* sta;
 		uint8_t wIdx;
 	};
 
@@ -71,17 +71,17 @@ private:
 	 * finished display is clear, because all characters has scrolled out of it.
 	 * Remember also that we have one char in off screen buffer
 	 */
-	class EndState: public StateMashine {
+	class EndState: public StateMachine {
 	public:
 		virtual ~EndState();
-		EndState(Scrolling8x8TextArea* sta);
+		EndState(ScrollingText8x8* sta);
 		virtual uint8_t execute();
 		virtual void init();
 		virtual void reset();
 		virtual boolean isIntermediate();
 	private:
 		uint8_t charsIdx;
-		Scrolling8x8TextArea* sta;
+		ScrollingText8x8* sta;
 	};
 
 	MainState mainState;
