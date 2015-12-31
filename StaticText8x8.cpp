@@ -28,5 +28,5 @@ void StaticText8x8::clearDisplay() {
 }
 
 StaticText8x8::~StaticText8x8() {
-	delete2DArray(data, FONT8_HEIGHT);
+	delete2DArray8(data);
 }

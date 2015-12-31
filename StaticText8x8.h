@@ -4,6 +4,7 @@
 #include "Canvas.h"
 #include "Util.h"
 #include "Font8x8.h"
+#include "Util.h"
 
 /**
  * Contains methods showing static text within given box. Each method displays text once and that's it.

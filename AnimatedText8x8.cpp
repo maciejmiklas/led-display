@@ -30,7 +30,7 @@ void AnimatedText8x8::clearDisplay() {
 }
 
 AnimatedText8x8::~AnimatedText8x8() {
-	delete2DArray(data, FONT8_HEIGHT);
+	delete2DArray8(data);
 }
 
 boolean AnimatedText8x8::isRunning() {

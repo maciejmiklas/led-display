@@ -9,7 +9,7 @@ Display::Display(kit_t xKits, kit_t yKits, ss_t **ss) :
 }
 
 Display::~Display() {
-	delete2DArray(screen, rows);
+	delete2DArray8(screen);
 }
 
 void Display::flush() {
