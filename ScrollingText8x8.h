@@ -15,8 +15,8 @@
 class ScrollingText8x8: public AnimatedText8x8 {
 
 public:
-	ScrollingText8x8(Canvas* canvas, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
-	void scroll(pixel_t x, pixel_t y, boolean loop, char* text);
+	ScrollingText8x8(Canvas *canvas, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
+	void scroll(pixel_t x, pixel_t y, boolean loop, char const *text);
 	virtual ~ScrollingText8x8();
 protected:
 	MachineDriver* createDriver();
@@ -27,7 +27,7 @@ private:
 	};
 	pixel_t x;
 	pixel_t y;
-	char* text;
+	char const *text;
 
 	/** plays text animation in a loop. In this case #isRunning() always returns true. */
 	boolean loop;
@@ -39,7 +39,7 @@ private:
 	 */
 	class MainState: public StateMachine {
 	public:
-		MainState(ScrollingText8x8* sta);
+		MainState(ScrollingText8x8 *sta);
 		virtual ~MainState();
 		virtual uint8_t execute();
 		virtual void init();

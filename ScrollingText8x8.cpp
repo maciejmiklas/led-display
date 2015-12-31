@@ -17,7 +17,7 @@ void ScrollingText8x8::paint() {
 	canvas->paint(x, y, boxWidth, 8, data);
 }
 
-void ScrollingText8x8::scroll(pixel_t x, pixel_t y, boolean loop, char *text) {
+void ScrollingText8x8::scroll(pixel_t x, pixel_t y, boolean loop, char const *text) {
 #if LOG_TA
 	log(F("Scroll text on (%d,%d)"), x, y);
 #endif

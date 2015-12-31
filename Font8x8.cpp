@@ -1,6 +1,6 @@
 #include "Font8x8.h"
 
-PROGMEM const char FONT8[FONT8_SIZE][FONT8_HEIGHT] = {
+PROGMEM const uint8_t FONT8[FONT8_SIZE][FONT8_HEIGHT] = {
 // Based on: https://github.com/dhepper/font8x8/blob/master/font8x8_basic.h
 		{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }, // 0 - U+0000 (nul)
 		{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 },   // 1 - U+0001
