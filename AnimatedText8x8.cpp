@@ -9,6 +9,7 @@ AnimatedText8x8::AnimatedText8x8(Canvas *canvas, pixel_t boxWidth, uint16_t anim
 void AnimatedText8x8::init() {
 	driver = createDriver();
 }
+
 void AnimatedText8x8::cycle() {
 #if FRAME_DELAY
 	uint32_t time = ms();

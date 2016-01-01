@@ -179,7 +179,7 @@ private:
 	/** Passes kd by value, because values will get modified inside function */
 	void paintOnKit(KitData kd, uint8_t **data);
 
-	// overlapped_xxx -> vertical position of data is not shifted relatively to first kit data consists of 8 bit
+	// overlapped_xxx -> vertical position of data is not shifted relatively to first kit. Data consists of 8 bit
 	// values and those align perfectly with 8 LED rows
 	uint8_t overlapped_firstAndMidleKit(KitData *kd, uint8_t **data);
 	uint8_t overlapped_lastKit(KitData *kd, uint8_t **data);
