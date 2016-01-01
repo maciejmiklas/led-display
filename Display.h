@@ -117,6 +117,11 @@ private:
 	uint8_t ** const screen;
 
 	/**
+	 * We are using double screen buffer in order to send to MAX only bytes that has changed.
+	 */
+	uint8_t ** const screenCmp;
+
+	/**
 	 * Contains data for each LED-Kit. Painting procedure goes over all kits and KitData will get recalculated
 	 * for each Kit.
 	 */
