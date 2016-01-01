@@ -1,11 +1,14 @@
 #include "Display.h"
 
 Display::Display(kit_t xKits, kit_t yKits, ss_t **ss) :
-		xKits(xKits), yKits(yKits), rows(yKits * KIT_DIM), ss(ss), screen(init2DArray8(rows, xKits)), screenCmp(
-				init2DArray8(rows, xKits)) {
+		xKits(xKits), yKits(yKits), rows(yKits * KIT_DIM), ss(ss), screen(init2DArray8(rows, xKits)) {
 
 #if LOG_DI
 	log(F("Created display with %dx%d LED-Kits and %d bytes screen buffer"), xKits, yKits, (rows * xKits));
+#endif
+
+#if USE_DEOUBLE_BUFFER
+	this->screenCmp = init2DArray8(rows, xKits);
 #endif
 }
 
@@ -23,15 +26,19 @@ void Display::flush() {
 		ss_t *ssXRf = ss[yKit];
 		for (uint8_t kitRow = REG_DIGIT0; kitRow <= REG_DIGIT7; kitRow++) {
 			uint8_t *screenXRefDisp = screen[displayRow];
+#if USE_DEOUBLE_BUFFER
 			uint8_t *screenXRefCmp = screenCmp[displayRow];
+#endif
 			for (kit_t xKit = 0; xKit < xKits; xKit++) {
 				ss_t ssAddress = ssXRf[xKit];
 				uint8_t screenByteDisp = screenXRefDisp[xKit];
+#if USE_DEOUBLE_BUFFER
 				uint8_t screenByteCmp = screenXRefCmp[xKit];
 				if (screenByteDisp == screenByteCmp) {
 					continue;
 				}
 				screenXRefCmp[xKit] = screenByteDisp;
+#endif
 
 #if LOG_DI
 				log(F("Line: %dx%d - %d ss:%d"), yKit, xKit, kitRow, ssAddress);

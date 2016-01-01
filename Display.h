@@ -9,6 +9,13 @@
 #define LOG_DI false
 #define SIMULATE_DI false
 
+/**
+ * Double buffer ensures that only changed bytes are send to Max. This improves performance and increases memory
+ * footprint. It needs 8 bytes for each Max chip plus space for array holding pointers to each row on the display -
+ * basically we have keep copy on #data in RAM.
+ */
+#define USE_DEOUBLE_BUFFER true
+
 /** One LED-Kit - 8x8 LED Matrix. */
 typedef uint8_t kit_t;
 
@@ -119,7 +126,7 @@ private:
 	/**
 	 * We are using double screen buffer in order to send to MAX only bytes that has changed.
 	 */
-	uint8_t ** const screenCmp;
+	uint8_t **screenCmp;
 
 	/**
 	 * Contains data for each LED-Kit. Painting procedure goes over all kits and KitData will get recalculated
