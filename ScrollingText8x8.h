@@ -15,9 +15,22 @@
 class ScrollingText8x8: public AnimatedText8x8 {
 
 public:
+	enum mode_t {
+
+		/** Scroll text once and stop. */
+		SINGLE_PASS,
+
+		/** Scroll text until display is empty and start again. */
+		LOOP,
+
+		/** Scroll text in loop without break between start and end. */
+		CONTINOUS_LOOP
+	};
+
 	ScrollingText8x8(Canvas *canvas, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
-	void scroll(pixel_t x, pixel_t y, boolean loop, char const *text);
+	void scroll(pixel_t x, pixel_t y, mode_t mode, char const *text);
 	virtual ~ScrollingText8x8();
+
 protected:
 	MachineDriver* createDriver();
 
@@ -28,9 +41,7 @@ private:
 	pixel_t x;
 	pixel_t y;
 	char const *text;
-
-	/** plays text animation in a loop. In this case #isRunning() always returns true. */
-	boolean loop;
+	mode_t mode;
 	void paint();
 
 	/**

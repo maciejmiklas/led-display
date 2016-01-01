@@ -1,8 +1,8 @@
 #include "ScrollingText8x8.h"
 
 ScrollingText8x8::ScrollingText8x8(Canvas *canvas, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id) :
-		AnimatedText8x8(canvas, boxWidth, animationDelayMs, id), x(0), y(0), text(NULL), loop(false), mainState(this), charState(
-				this), endState(this), __machineDriver(3, &mainState, &charState, &endState) {
+		AnimatedText8x8(canvas, boxWidth, animationDelayMs, id), x(0), y(0), text(NULL), mode(SINGLE_PASS), mainState(
+				this), charState(this), endState(this), __machineDriver(3, &mainState, &charState, &endState) {
 }
 
 ScrollingText8x8::~ScrollingText8x8() {
@@ -17,14 +17,14 @@ void ScrollingText8x8::paint() {
 	canvas->paint(x, y, boxWidth, 8, data);
 }
 
-void ScrollingText8x8::scroll(pixel_t x, pixel_t y, boolean loop, char const *text) {
+void ScrollingText8x8::scroll(pixel_t x, pixel_t y, mode_t mode, char const *text) {
 #if LOG_TA
 	log(F("Scroll text on (%d,%d)"), x, y);
 #endif
 
 	this->x = x;
 	this->y = y;
-	this->loop = loop;
+	this->mode = mode;
 	this->text = text;
 	resetState();
 	clearDisplay();
@@ -57,6 +57,9 @@ uint8_t ScrollingText8x8::MainState::execute() {
 #endif
 
 	if (nextChar == '\0') {
+		if (sta->mode == CONTINOUS_LOOP) {
+			return StateMachine::STATE_RESET;
+		}
 		return ScrollingText8x8::STATE_END;
 	}
 	// copy next font into first off screen bye on the right
@@ -127,7 +130,7 @@ void ScrollingText8x8::EndState::init() {
 uint8_t ScrollingText8x8::EndState::execute() {
 	if (charsIdx == sta->boxWidth + FONT8_WIDTH) {
 		uint8_t state;
-		if (sta->loop) {
+		if (sta->mode == LOOP) {
 			state = StateMachine::STATE_RESET;
 		} else {
 			state = StateMachine::STATE_NOOP;
