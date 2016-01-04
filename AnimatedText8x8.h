@@ -6,7 +6,7 @@
 #include "Font8x8.h"
 #include "Canvas.h"
 
-#define FRAME_DELAY true
+#define FRAME_DELAY false
 
 /**
  * Subclasses of this class are displaying animated text within a box.
@@ -48,6 +48,12 @@ protected:
 	const pixel_t boxWidth;
 
 	/**
+	 * Amount of columns (width) in #data (2D table). This is an amount of bytes in horizontal position.
+	 * For example: each font is build of 8x8 pixels, so it occupies 8 rows and one column in our #data table.
+	 */
+	const uint8_t xDataSize;
+
+	/**
 	 * Screen data representing content of this Text Area. First position in #data array indicates row (y axis),
 	 * second represents pixels within this row.
 	 *
@@ -62,12 +68,6 @@ protected:
 	 * bounds: #data[0][0] - #data[8][#boxWidth / 8 + 2].
 	 */
 	uint8_t ** const data;
-
-	/**
-	 * Amount of columns (width) in #data (2D table). This is an amount of bytes in horizontal position.
-	 * For example: each font is build of 8x8 pixels, so it occupies 8 rows and one column in our #data table.
-	 */
-	const uint8_t xDataSize;
 
 	/** Amount of rows (height) in 2D data table. */
 	const uint8_t yDataSize;

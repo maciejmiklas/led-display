@@ -7,14 +7,14 @@
 #include "Canvas.h"
 
 #define LOG_DI false
-#define SIMULATE_DI false
+#define SIMULATE_DI true
 
 /**
  * Double buffer ensures that only changed bytes are send to Max. This improves performance and increases memory
  * footprint. It needs 8 bytes for each Max chip plus space for array holding pointers to each row on the display -
  * basically we have keep copy on #data in RAM.
  */
-#define USE_DEOUBLE_BUFFER true
+#define DEOUBLE_BUFFER true
 
 /** One LED-Kit - 8x8 LED Matrix. */
 typedef uint8_t kit_t;
@@ -171,39 +171,48 @@ private:
 
 		// y position on #data
 		uint8_t yDataIdx;
+		int aaa;
 	} KitData;
+
+	KitData _kd;
+	KitData _kdCopy;
 
 	void setupMax();
 	void setupMax(ss_t ss);
 	void setupSpi();
-	void send(ss_t ss, uint8_t address, uint8_t value);
 	void clearKit(ss_t ss);
 
+	inline KitData* createKitData();
+	inline KitData* copyKitData();
+
+	inline void send(ss_t ss, uint8_t address, uint8_t value);
+
 	/** reduces width/height so it fits on the screen */
-	pixel_t limitSize(pixel_t xy, pixel_t wh, kit_t startKitXY, kit_t endKitXY);
+	inline pixel_t limitSize(pixel_t xy, pixel_t wh, kit_t startKitXY, kit_t endKitXY);
 
 	/** finds ending 8x8-Matrix - inclusive */
-	kit_t calcEndKit(pixel_t xy, pixel_t wh, kit_t yxKits);
+	inline kit_t calcEndKit(pixel_t xy, pixel_t wh, kit_t yxKits);
 
 	/** calculates width/height within current kit */
-	pixel_t calcSizeOnKit(pixel_t xy, pixel_t wh, kit_t xyKit, kit_t xyOnKit, kit_t startKitXY, kit_t endKitXY);
+	inline pixel_t calcSizeOnKit(pixel_t xy, pixel_t wh, kit_t xyKit, kit_t xyOnKit, kit_t startKitXY, kit_t endKitXY);
 
-	/** Passes kd by value, because values will get modified inside function */
-	void paintOnKit(KitData kd, uint8_t **data);
+	/** #kd will get modified inside function ! */
+	inline void paintOnKit_(KitData kd, uint8_t **data);
+	inline void paintOnKit(KitData &kd, uint8_t **data);
 
 	// overlapped_xxx -> vertical position of data is not shifted relatively to first kit. Data consists of 8 bit
 	// values and those align perfectly with 8 LED rows
-	uint8_t overlapped_firstAndMidleKit(KitData *kd, uint8_t **data);
-	uint8_t overlapped_lastKit(KitData *kd, uint8_t **data);
+	inline uint8_t overlapped_firstAndMidleKit(KitData &kd, uint8_t **data);
+	inline uint8_t overlapped_lastKit(KitData &kd, uint8_t **data);
 
 	// shifted_xxx -> vertical position of data IS shifted relatively to first kit
-	uint8_t shifted_firstKit(KitData *kd, uint8_t **data);
+	inline uint8_t shifted_firstKit(KitData &kd, uint8_t **data);
 
 	/**
 	 *  Vertical position on first kit is shifted, so we need two bytes of data to cover single row on one LED-Kit.
 	 *  This method will be used to paint row on middle kit.
 	 */
-	uint8_t shifted_middleKit(KitData *kd, uint8_t **data);
+	inline uint8_t shifted_middleKit(KitData *kd, uint8_t **data);
 
 	/**
 	 *  This is exception to method using 2 bytes. On the last kit it might be sufficient to use only one byte to
@@ -223,9 +232,9 @@ private:
 	 *  on third kit: 0-3 -> uses 3 bits of second and 1 bit of third byte
 	 *  On the last kit we need 2 bytes.
 	 */
-	uint8_t shifted_lastKit1Byte(KitData *kd, uint8_t **data);
+	inline uint8_t shifted_lastKit1Byte(KitData *kd, uint8_t **data);
 
-	uint8_t shifted_lastKit2Bytes(KitData *kd, uint8_t **data);
+	inline uint8_t shifted_lastKit2Bytes(KitData *kd, uint8_t **data);
 };
 
 #endif /* LD_Display_h */
