@@ -1,7 +1,7 @@
 #include "Display.h"
 
 Display::Display(kit_t xKits, kit_t yKits, ss_t **ss) :
-		xKits(xKits), yKits(yKits), rows(yKits * KIT_DIM), ss(ss), screen(init2DArray8(rows, xKits)), _kd(), _kdCopy() {
+		xKits(xKits), yKits(yKits), rows(yKits * KIT_DIM), ss(ss), screen(init2DArray8(rows, xKits)) {
 
 #if LOG_DI
 	log(F("Created display with %dx%d LED-Kits and %d bytes screen buffer"), xKits, yKits, (rows * xKits));
@@ -26,9 +26,7 @@ void Display::flush() {
 		ss_t *ssXRf = ss[yKit];
 		for (uint8_t kitRow = REG_DIGIT0; kitRow <= REG_DIGIT7; kitRow++) {
 			uint8_t *screenXRefDisp = screen[displayRow];
-#if DEOUBLE_BUFFER
 			uint8_t *screenXRefCmp = screenCmp[displayRow];
-#endif
 			for (kit_t xKit = 0; xKit < xKits; xKit++) {
 				ss_t ssAddress = ssXRf[xKit];
 				uint8_t screenByteDisp = screenXRefDisp[xKit];
@@ -49,46 +47,6 @@ void Display::flush() {
 		}
 	}
 
-}
-
-inline Display::KitData* Display::createKitData() {
-	_kd.xOnFirstKit = 0;
-	_kd.yOnFirstKit = 0;
-	_kd.xRelKit = 0;
-	_kd.yRelKit = 0;
-	_kd.xRelKitSize = 0;
-	_kd.yRelKitSize = 0;
-	_kd.xDataBytes = 0;
-	_kd.xKit = 0;
-	_kd.yKit = 0;
-	_kd.xOnKit = 0;
-	_kd.yOnKit = 0;
-	_kd.xOnKitSize = 0;
-	_kd.yOnKitSize = 0;
-	_kd.xOnScreenIdx = 0;
-	_kd.yOnScreenIdx = 0;
-	_kd.yDataIdx = 0;
-	return &_kd;
-}
-
-inline Display::KitData* Display::copyKitData() {
-	_kdCopy.xOnFirstKit = _kd.xOnFirstKit;
-	_kdCopy.yOnFirstKit = _kd.yOnFirstKit;
-	_kdCopy.xRelKit = _kd.xRelKit;
-	_kdCopy.yRelKit = _kd.yRelKit;
-	_kdCopy.xRelKitSize = _kd.xRelKitSize;
-	_kdCopy.yRelKitSize = _kd.yRelKitSize;
-	_kdCopy.xDataBytes = _kd.xDataBytes;
-	_kdCopy.xKit = _kd.xKit;
-	_kdCopy.yKit = _kd.yKit;
-	_kdCopy.xOnKit = _kd.xOnKit;
-	_kdCopy.yOnKit = _kd.yOnKit;
-	_kdCopy.xOnKitSize = _kd.xOnKitSize;
-	_kdCopy.yOnKitSize = _kd.yOnKitSize;
-	_kdCopy.xOnScreenIdx = _kd.xOnScreenIdx;
-	_kdCopy.yOnScreenIdx = _kd.yOnScreenIdx;
-	_kdCopy.yDataIdx = _kd.yDataIdx;
-	return &_kdCopy;
 }
 
 void Display::setup() {
@@ -174,54 +132,51 @@ void Display::paint(pixel_t x, pixel_t y, pixel_t width, pixel_t height, uint8_t
 			heightLim);
 #endif
 
-	KitData *kd = createKitData();
-	kd->xRelKitSize = endKitX - startKitX + 1;
-	kd->yRelKitSize = endKitY - startKitY + 1;
+	KitData kd = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	kd.xRelKitSize = endKitX - startKitX + 1;
+	kd.yRelKitSize = endKitY - startKitY + 1;
 
-	kd->xDataBytes = widthLim / KIT_DIM;
-	if (kd->xDataBytes * KIT_DIM < widthLim) {
-		kd->xDataBytes++;
+	kd.xDataBytes = widthLim / KIT_DIM;
+	if (kd.xDataBytes * KIT_DIM < widthLim) {
+		kd.xDataBytes++;
 	}
-	for (kd->yKit = startKitY; kd->yKit <= endKitY; kd->yKit++) {
-		kd->yOnScreenIdx = kd->yKit * KIT_DIM;
-		if (kd->yKit == startKitY) {
-			kd->yOnFirstKit = kd->yOnKit = y - (startKitY * KIT_DIM);
-			kd->yOnScreenIdx += kd->yOnKit;
+	for (kd.yKit = startKitY; kd.yKit <= endKitY; kd.yKit++) {
+		kd.yOnScreenIdx = kd.yKit * KIT_DIM;
+		if (kd.yKit == startKitY) {
+			kd.yOnFirstKit = kd.yOnKit = y - (startKitY * KIT_DIM);
+			kd.yOnScreenIdx += kd.yOnKit;
 		} else {
-			kd->yOnKit = 0;
+			kd.yOnKit = 0;
 		}
-		kd->yOnKitSize = calcSizeOnKit(y, heightLim, kd->yKit, kd->yOnKit, startKitY, endKitY);
-		kd->yDataIdx = kd->yRelKit == 0 ? 0 : (KIT_DIM - kd->yOnFirstKit);
-		if (kd->yRelKit >= 2) {
-			kd->yDataIdx += (KIT_DIM * (kd->yRelKit - 1));
+		kd.yOnKitSize = calcSizeOnKit(y, heightLim, kd.yKit, kd.yOnKit, startKitY, endKitY);
+		kd.yDataIdx = kd.yRelKit == 0 ? 0 : (KIT_DIM - kd.yOnFirstKit);
+		if (kd.yRelKit >= 2) {
+			kd.yDataIdx += (KIT_DIM * (kd.yRelKit - 1));
 		}
 
-		kd->xRelKit = 0;
-		for (kd->xKit = startKitX; kd->xKit <= endKitX; kd->xKit++) {
-			if (kd->xKit == startKitX) {
-				kd->xOnFirstKit = kd->xOnKit = x - (startKitX * KIT_DIM);
+		kd.xRelKit = 0;
+		for (kd.xKit = startKitX; kd.xKit <= endKitX; kd.xKit++) {
+			if (kd.xKit == startKitX) {
+				kd.xOnFirstKit = kd.xOnKit = x - (startKitX * KIT_DIM);
 			} else {
-				kd->xOnKit = 0;
+				kd.xOnKit = 0;
 			}
-			kd->xOnKitSize = calcSizeOnKit(x, widthLim, kd->xKit, kd->xOnKit, startKitX, endKitX);
-			kd->xOnScreenIdx = kd->xKit;
+			kd.xOnKitSize = calcSizeOnKit(x, widthLim, kd.xKit, kd.xOnKit, startKitX, endKitX);
+			kd.xOnScreenIdx = kd.xKit;
 
 			// pass kd as copy, it will be modified inside
-			KitData *kdCopy = copyKitData();
-			paintOnKitRef(kdCopy, data);
-			//paintOnKitVal(*kdCopy, data);
-			kd->xRelKit++;
+			paintOnKit(kd, data);
+			kd.xRelKit++;
 		}
-		kd->yRelKit++;
+		kd.yRelKit++;
 	}
 }
 
-inline void Display::paintOnKitVal(KitData kd, uint8_t **data) {
+inline void Display::paintOnKit(KitData kd, uint8_t **data) {
 #if LOG_DI
 	log(F("Paint on kit: k(%d,%d), kr(%d,%d) -> %dx%d, p(%d,%d) -> %dx%d"), kd->xKit, kd->yKit, kd->xRelKit, kd->yRelKit,
 			kd->xRelKitSize, kd->yRelKitSize, kd->xOnKit, kd->yOnKit, kd->xOnKitSize, kd->yOnKitSize);
 #endif
-	kd.aaa = 11;
 	// go over rows on single LED-Kit
 	for (pixel_t yCnt = 0; yCnt < kd.yOnKitSize; yCnt++) {
 		uint8_t newDispByte;
@@ -250,43 +205,6 @@ inline void Display::paintOnKitVal(KitData kd, uint8_t **data) {
 		screen[kd.yOnScreenIdx][kd.xOnScreenIdx] = newDispByte;
 		kd.yDataIdx++;
 		kd.yOnScreenIdx++;
-	}
-}
-
-inline void Display::paintOnKitRef(KitData *kd, uint8_t **data) {
-#if LOG_DI
-	log(F("Paint on kit: k(%d,%d), kr(%d,%d) -> %dx%d, p(%d,%d) -> %dx%d"), kd->xKit, kd->yKit, kd->xRelKit, kd->yRelKit,
-			kd->xRelKitSize, kd->yRelKitSize, kd->xOnKit, kd->yOnKit, kd->xOnKitSize, kd->yOnKitSize);
-#endif
-	kd->aaa = 7;
-	// go over rows on single LED-Kit
-	for (pixel_t yCnt = 0; yCnt < kd->yOnKitSize; yCnt++) {
-		uint8_t newDispByte;
-		if (kd->xOnFirstKit == 0) { // x position on first kit is not shifted
-			if (kd->xRelKit == kd->xRelKitSize - 1) {
-				newDispByte = overlapped_lastKit(*kd, data);
-			} else {
-				newDispByte = overlapped_firstAndMidleKit(*kd, data);
-			}
-		} else {
-
-			if (kd->xRelKit == 0) { // paint on first kit
-				newDispByte = shifted_firstKit(*kd, data);
-
-			} else if (kd->xRelKit == kd->xRelKitSize - 1) { // paint on last kit
-				if (kd->xRelKit < kd->xDataBytes) {
-					newDispByte = shifted_lastKit2Bytes(*kd, data);
-
-				} else {
-					newDispByte = shifted_lastKit1Byte(*kd, data);
-				}
-			} else { // paint on middle kit
-				newDispByte = shifted_middleKit(*kd, data);
-			}
-		}
-		screen[kd->yOnScreenIdx][kd->xOnScreenIdx] = newDispByte;
-		kd->yDataIdx++;
-		kd->yOnScreenIdx++;
 	}
 }
 

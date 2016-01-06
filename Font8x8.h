@@ -2,7 +2,7 @@
 #define LD_Font8x8_h
 
 #include "Arduino.h"
-#include "Log.h"
+#include "ArdLog.h"
 
 /**
  * Font size is set to 8x8 pixels. Each single font is stored in array containing 8 data bytes.

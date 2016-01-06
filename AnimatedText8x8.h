@@ -1,12 +1,12 @@
 #ifndef ANIMATEDTEXTAREA_H_
 #define ANIMATEDTEXTAREA_H_
 
-#include "Util.h"
+#include "ArdUtil.h"
 #include "MachineDriver.h"
 #include "Font8x8.h"
 #include "Canvas.h"
 
-#define FRAME_DELAY false
+#define FRAME_DELAY true
 
 /**
  * Subclasses of this class are displaying animated text within a box.

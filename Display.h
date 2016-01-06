@@ -3,11 +3,11 @@
 
 #include "Arduino.h"
 #include "SPI.h"
-#include "Log.h"
+#include "ArdLog.h"
 #include "Canvas.h"
 
 #define LOG_DI false
-#define SIMULATE_DI true
+#define SIMULATE_DI false
 
 /**
  * Double buffer ensures that only changed bytes are send to Max. This improves performance and increases memory
@@ -171,19 +171,12 @@ private:
 
 		// y position on #data
 		uint8_t yDataIdx;
-		int aaa;
 	} KitData;
-
-	KitData _kd;
-	KitData _kdCopy;
 
 	void setupMax();
 	void setupMax(ss_t ss);
 	void setupSpi();
 	void clearKit(ss_t ss);
-
-	inline KitData* createKitData();
-	inline KitData* copyKitData();
 
 	inline void send(ss_t ss, uint8_t address, uint8_t value);
 
@@ -197,8 +190,7 @@ private:
 	inline pixel_t calcSizeOnKit(pixel_t xy, pixel_t wh, kit_t xyKit, kit_t xyOnKit, kit_t startKitXY, kit_t endKitXY);
 
 	/** #kd will get modified inside function ! */
-	inline void paintOnKitVal(KitData kd, uint8_t **data);
-	inline void paintOnKitRef(KitData *kd, uint8_t **data);
+	inline void paintOnKit(KitData kd, uint8_t **data);
 
 	// overlapped_xxx -> vertical position of data is not shifted relatively to first kit. Data consists of 8 bit
 	// values and those align perfectly with 8 LED rows
