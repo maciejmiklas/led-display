@@ -19,7 +19,7 @@ void AnimatedText8x8::cycle() {
 	lastFrameTimeMs = time;
 #endif
 
-#if LOG_TA
+#if LOG
 	log(F("Next frame(%d)"), tid);
 #endif
 

@@ -1,7 +1,7 @@
 #ifndef ANIMATEDTEXTAREA_H_
 #define ANIMATEDTEXTAREA_H_
 
-#include "ArdUtil.h"
+#include "Util.h"
 #include "MachineDriver.h"
 #include "Font8x8.h"
 #include "Canvas.h"
@@ -53,6 +53,9 @@ protected:
 	 */
 	const uint8_t xDataSize;
 
+	/** Amount of rows (height) in 2D data table. */
+	const uint8_t yDataSize;
+
 	/**
 	 * Screen data representing content of this Text Area. First position in #data array indicates row (y axis),
 	 * second represents pixels within this row.
@@ -68,9 +71,6 @@ protected:
 	 * bounds: #data[0][0] - #data[8][#boxWidth / 8 + 2].
 	 */
 	uint8_t ** const data;
-
-	/** Amount of rows (height) in 2D data table. */
-	const uint8_t yDataSize;
 
 	/** Position to offscreen buffer byte of #data. */
 	const uint8_t xDataOffScrIdx;

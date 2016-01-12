@@ -4,9 +4,9 @@
 #include "Arduino.h"
 #include "SPI.h"
 #include "ArdLog.h"
+#include "Util.h"
 #include "Canvas.h"
 
-#define LOG_DI false
 #define SIMULATE_DI false
 
 /**

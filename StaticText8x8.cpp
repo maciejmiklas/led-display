@@ -6,8 +6,8 @@ StaticText8x8::StaticText8x8(Canvas *canvas, pixel_t boxWidth) :
 }
 
 void StaticText8x8::box(pixel_t x, pixel_t y, char const *text) {
-#if LOG_TA
-	log(F("Display text box on (%d,%d))", x, y);
+#if LOG
+	log(F("Display text box on (%d,%d)"), x, y);
 #endif
 
 	clean2DArray8(data, FONT8_HEIGHT, xDataSize);

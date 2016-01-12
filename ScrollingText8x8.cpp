@@ -18,7 +18,7 @@ void ScrollingText8x8::paint() {
 }
 
 void ScrollingText8x8::scroll(pixel_t x, pixel_t y, mode_t mode, char const *text) {
-#if LOG_TA
+#if LOG
 	log(F("Scroll text on (%d,%d)"), x, y);
 #endif
 
@@ -52,7 +52,7 @@ void ScrollingText8x8::MainState::init() {
 
 uint8_t ScrollingText8x8::MainState::execute() {
 	char nextChar = sta->text[charsIdx++];
-#if LOG_TA
+#if LOG
 	log(F("Next char: %d on %d"), nextChar, charsIdx);
 #endif
 
@@ -93,7 +93,7 @@ uint8_t ScrollingText8x8::CharState::execute() {
 	for (uint8_t hIdx = 0; hIdx < FONT8_HEIGHT; hIdx++) {
 		shiftL(sta->data[hIdx], sta->xDataSize);
 	}
-#if LOG_TA
+#if LOG
 	log(F("Display shift: %d"), wIdx);
 #endif
 	sta->paint();
@@ -141,7 +141,7 @@ uint8_t ScrollingText8x8::EndState::execute() {
 	for (uint8_t hIdx = 0; hIdx < FONT8_WIDTH; hIdx++) {
 		shiftL(sta->data[hIdx], sta->xDataSize);
 	}
-#if LOG_TA
+#if LOG
 	log(F("EndState charsIdx: %d"), charsIdx);
 #endif
 	sta->paint();
