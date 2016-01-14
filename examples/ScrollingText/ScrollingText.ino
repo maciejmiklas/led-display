@@ -1,6 +1,6 @@
 #include <AnimatedText8x8.h>
 #include <Display.h>
-#include <ArdUtil.h>
+#include <ArdLog.h>
 #include <ScrollingText8x8.h>
 #include <SPI.h>
 
