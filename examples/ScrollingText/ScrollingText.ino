@@ -1,8 +1,5 @@
-#include <AnimatedText8x8.h>
 #include <Display.h>
-#include <ArdLog.h>
 #include <ScrollingText8x8.h>
-#include <SPI.h>
 
 Display *disp;
 
@@ -94,7 +91,7 @@ void setup() {
 
   message = new ScrollingText8x8(disp, 48, 50, 5);
   message->init();
-  textMessage = "This is an example multiple scorlling areas ;)";
+  textMessage = "This is an example of multiple scorlling areas ;)";
   message->scroll(8, 8, ScrollingText8x8::LOOP, textMessage);
 }
 
