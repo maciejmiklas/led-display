@@ -163,6 +163,9 @@ void loop() {
 
 ## Static Text
 ![](/doc/img/disp_static.jpg)
+
+<img src="/doc/img/disp_static.jpg" width="200px"/>
+
 Here you can find Arduino sketch containing whole example: [StaticText](/examples/StaticText). 
 
 Your sketch needs setup method as we've already seen above. So we are assuming that you have already created *Display* and now you would like to show simple text. For this you should use class class *StaticText8x8*, it could look like this one:
@@ -200,7 +203,7 @@ As a result we would display text "Hello !" on (3,10). Font is defined in class:
 ## Single Scrolling Text
 
 ## Scrolling Text Mixed
-![Static Text](/doc/img/disp_scroll.jpg)
+![](/doc/img/disp_scroll.jpg)
 This sketch contains whole example: [ScrollingText](/examples/ScrollingText). Below we will discuss simplified version, so that you can get the idea.
 
 As in the previous example - we are assuming, that you have proper instance of *Display*, but this time you would like to show text scrolling within a box. The class *ScrollingText8x8* will handle it:
