@@ -120,7 +120,7 @@ Communication with MAX chips is not very fast and sending content of the whole d
 Examples are using ArdLogger, so you have to import this lib into our Arduino IDE. Here are instructions: https://github.com/maciejmiklas/ArdLog
 
 ## Simple Bitmap
-![Static Text](/doc/img/disp_v.jpg | width=300)
+![](/doc/img/disp_v.jpg)
 
 Here is the Arduino sketch: [SimpleBitmat](/examples/SimpleBitmat/SimpleBitmat.ino), now let's discuss it:
 
@@ -162,7 +162,7 @@ void loop() {
 ```
 
 ## Static Text
-![Static Text](/doc/img/disp_static.jpg | width=300)
+![](/doc/img/disp_static.jpg)
 Here you can find Arduino sketch containing whole example: [StaticText](/examples/StaticText). 
 
 Your sketch needs setup method as we've already seen above. So we are assuming that you have already created *Display* and now you would like to show simple text. For this you should use class class *StaticText8x8*, it could look like this one:
