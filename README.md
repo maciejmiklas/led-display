@@ -14,7 +14,7 @@ I've used 788BS LED Matrix, this is the one with common anode. If you have one w
 Bot schematics above are equivalent - the just illustrate different perspective.
 
 ## Connecting all LED Matix together
-![Test LED Display](/doc/fritzing/TestLEDDisplay.jpg)
+![Test LED Display](/doc/fritzing/TestLEDDisplay.jpg | width=300)
 All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip requires separate Slave Select line. 
 The position of LED Marix on the schematic above directly corresponds to their location on the accrual display, that I've used for testing. 
 
