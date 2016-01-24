@@ -14,7 +14,7 @@ I've used 788BS LED Matrix, this is the one with common anode. If you have one w
 Bot schematics above are equivalent - the just illustrate different perspective.
 
 ## Connecting all LED Matix together
-![Test LED Display](/doc/fritzing/TestLEDDisplay.jpg | width=300)
+![Test LED Display](/doc/fritzing/TestLEDDisplay.jpg)
 All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip requires separate Slave Select line. 
 The position of LED Marix on the schematic above directly corresponds to their location on the accrual display, that I've used for testing. 
 
@@ -120,7 +120,8 @@ Communication with MAX chips is not very fast and sending content of the whole d
 Examples are using ArdLogger, so you have to import this lib into our Arduino IDE. Here are instructions: https://github.com/maciejmiklas/ArdLog
 
 ## Simple Bitmap
-![Static Text](/doc/img/disp_v.jpg)
+![Static Text](/doc/img/disp_v.jpg | width=300)
+
 Here is the Arduino sketch: [SimpleBitmat](/examples/SimpleBitmat/SimpleBitmat.ino), now let's discuss it:
 
 First we have to create data that can hold out bitmap - it will have 3x2 bytes. This gives us up to 3 lines and 16 horizontal pixels. But the size of out bitmap is 
@@ -161,7 +162,7 @@ void loop() {
 ```
 
 ## Static Text
-![Static Text](/doc/img/disp_static.jpg)
+![Static Text](/doc/img/disp_static.jpg | width=300)
 Here you can find Arduino sketch containing whole example: [StaticText](/examples/StaticText). 
 
 Your sketch needs setup method as we've already seen above. So we are assuming that you have already created *Display* and now you would like to show simple text. For this you should use class class *StaticText8x8*, it could look like this one:
