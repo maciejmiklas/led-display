@@ -58,17 +58,25 @@ void setup() {
   disp = new Display(8, 3, ss);
   disp->setup();
 
-  data = alloc2DArray8(3, 2);
-  data[0][1] = B01100001; data[0][2] = B10000000;
-  data[1][1] = B00110011; data[1][2] = B00000000;
-  data[2][1] = B00001100; data[2][2] = B00000000;
+  data = alloc2DArray8(8, 2);
+  data[0][0] = B01100001; data[0][1] = B10000000;
+  data[1][0] = B01100001; data[1][1] = B10000000;
+  data[2][0] = B01100001; data[2][1] = B10000000;
+  data[3][0] = B01100001; data[3][1] = B10000000;
+  data[4][0] = B01100001; data[4][1] = B10000000;
+  data[5][0] = B00110011; data[5][1] = B00000000;
+  data[6][0] = B00011110; data[6][1] = B00000000;
+  data[7][0] = B00001100; data[7][1] = B00000000;
 
-  disp->paint(20,10, 9, 3, data);
+  disp->paint(27, 9, 9, 8, data);
 }
 
 void loop() {
   util_cycle();
   log_cycle();
+  
+   // Paint method updates only internal buffer, 
+   // in order to send data to MAX chips you have to flush display.
   disp->flush();
   delay(100000);
 }

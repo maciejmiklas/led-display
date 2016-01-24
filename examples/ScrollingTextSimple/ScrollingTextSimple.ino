@@ -1,9 +1,11 @@
 #include <Display.h>
-#include <StaticText8x8.h>
+#include <ScrollingText8x8.h>
 
 Display *disp;
-StaticText8x8 *sta1;
-StaticText8x8 *sta2;
+
+ScrollingText8x8 *message;
+const char *textMessage;
+
 /**
  * Orientation of LED Kits (8x8 LED matrix) on display that I've used for testing.
  * The numbers are indicating Select Slave line of MAX7219.
@@ -49,7 +51,6 @@ ss_t** createSS() {
   return ss;
 }
 
-
 void setup() {
   util_setup();
   log_setup();
@@ -59,17 +60,17 @@ void setup() {
   disp = new Display(8, 3, ss);
   disp->setup();
 
-  sta1 = new StaticText8x8(disp, 64);
-  sta1->box(14, 2, "Hello");
-
-  sta2 = new StaticText8x8(disp, 64);
-  sta2->box(5, 15, "World !");
+  message = new ScrollingText8x8(disp, 48, 50, 5);
+  message->init();
+  textMessage = "This is an example of multiple scorlling areas ;)";
+  message->scroll(8, 8, ScrollingText8x8::LOOP, textMessage);
 }
 
 void loop() {
   util_cycle();
   log_cycle();
-  disp->flush();
+
+  message->cycle();
   
-  delay(100000);
+  disp->flush();
 }
