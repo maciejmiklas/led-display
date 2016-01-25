@@ -120,7 +120,7 @@ Communication with MAX chips is not very fast and sending content of the whole d
 Examples are using ArdLogger, so you have to import this lib into our Arduino IDE. Here are instructions: https://github.com/maciejmiklas/ArdLog
 
 ## Simple Bitmap
-<img src="/doc/img/disp_v.jpg" width="300px"/>
+<img src="/doc/img/dispV.jpg" width="300px"/>
 
 
 Here is the Arduino sketch: [SimpleBitmat](/examples/SimpleBitmat/SimpleBitmat.ino), now let's discuss it:
@@ -163,7 +163,7 @@ void loop() {
 ```
 
 ## Static Text
-<img src="/doc/img/disp_static.jpg" width="300px"/>
+<img src="/doc/img/dispStatic.jpg" width="300px"/>
 
 Here you can find Arduino sketch containing whole example: [StaticText](/examples/StaticText). 
 
@@ -200,10 +200,10 @@ void loop() {
 As a result we would display text "Hello !" on (3,10). Font is defined in class: [Font8x8](https://github.com/maciejmiklas/LEDDisplay/blob/master/Font8x8.cpp), each character has 8x8 pixels.
 
 ## Single Scrolling Text
-[![](/doc/img/ScrollingTextSimple_Youtube.jpg)](https://youtu.be/0sQ3GSuFi54)
+[![](/doc/img/scrollingTextSimple_youtube.jpg)](https://youtu.be/0sQ3GSuFi54)
 
 ## Scrolling Text Mixed
-[![](/doc/img/ScrollingTextMixed_Youtube.jpg)](https://youtu.be/nanXzz2FVsY)
+[![](/doc/img/scrollingTextMixed_youtube.jpg)](https://youtu.be/nanXzz2FVsY)
 
 This sketch contains whole example: [ScrollingText](/examples/ScrollingText). Below we will discuss simplified version, so that you can get the idea.
 
