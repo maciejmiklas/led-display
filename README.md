@@ -11,7 +11,7 @@ You will need extra power supply for driving LEDs - assuming that you are going 
 ## Driving single LED Matrix
 I've used 788BS LED Matrix, this is the one with common anode. If you have one with common cathode, you will have to rewire pins. 
 On the schematic below you can see the wiring of LEDs, MAX and Arduino:
-<img src="/doc/fritzing/MAX7219-788BS-LEDs_schem.png" width="600px" border="5px"/>
+<img src="/doc/fritzing/MAX7219-788BS-LEDs_schem.png" width="600px"/>
 
 
 This one is equivalent, but instead of single LEDs we have PINs of 788BS: 
