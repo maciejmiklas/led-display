@@ -3,16 +3,18 @@ This project contains driver for 8x8 LED Moduls controlled via MAX722xx. It allo
 I've tested the whole idea on display that consist of 8 LED Modules in horizontal and 3 in vertical position. This gives us in total 24 modules which are containing 1536 LEDs (8*8 * 3*8).
 
 # Hardware
-Fritzing schames are ![here](\doc\fritzing)
+Fritzing schames are here:[(\doc\fritzing)]
 First let's start with the controller. Actually any Arduino will work, I've used Mega due to large number of digital output pins. You could also use shift register and alter way of addressing Select Slave lines in *Display::send(...)*.
 
 You will need extra power supply for driving LEDs - assuming that you are going to use more than one LED Matrix.
 
 ## Driving single LED Matrix
-I've used 788BS LED Matrix, this is the one with common anode. If you have one with common cathode, you will have to rewire pins. On the schematic below you can see the wiring of single LED Display, MAX and Arduino. 
-![](/doc/fritzing/MAX7219-788BS_schem.png)
+I've used 788BS LED Matrix, this is the one with common anode. If you have one with common cathode, you will have to rewire pins. 
+On the schematic below you can see the wiring of LEDs, MAX and Arduino:
 ![](/doc/fritzing/MAX7219-788BS-LEDs_schem.png)
-Bot schematics above are equivalent - the just illustrate different perspective.
+
+This one is equivalent, but instead of single LEDs we have PINs of 788BS: 
+![](/doc/fritzing/MAX7219-788BS_schem.png)
 
 ## Connecting all LED Matix together
 ![](/doc/fritzing/LED_Display_schem.png)
