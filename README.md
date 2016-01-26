@@ -23,7 +23,7 @@ Each 3-PIN connector symbolizes one module described in previous chapter (LED Ma
 The position of LED Matrix on the schematic above directly corresponds to their location on the accrual display, that I've used for testing. Additionally each module has description indicating it's position and Select Slave line, so for example: *(2,1) SS: 35* gives us second module on third row (counting from zero) and 35 PIN on Arduino for Select Slave line.
 
 Here is the physical display with position of single LED modules and their Select Slave lines:
-![](/doc/img/display_pins.jpg)
+<img src="/doc/img/display_pins.jpg" width="600px"/>
 
 #Software
 ## Setting things up
