@@ -1,9 +1,9 @@
-This project contains driver for 8x8 LED Moduls controlled via MAX722xx. It allows you to build display of custom size that is only limited by the hardware itself. Vertical and horizontal size can contain up to 256 modules, but before reaching this limit you would run out of Slave Select lines for controlling MAX chips, or you would be limited by amount of RAM. The fact is: you can control reasonable amount of MAX chips and build display of custom size ;)
+This project contains driver for 8x8 LED Modules controlled via MAX722xx. It allows you to build display of custom size that is only limited by the hardware itself. Vertical and horizontal size can contain up to 256 modules, but before reaching this limit you would run out of Slave Select lines for controlling MAX chips, or you would be limited by amount of RAM. The fact is: you can control reasonable amount of MAX chips and build display of custom size ;)
 
 I've tested the whole idea on display that consist of 8 LED Modules in horizontal and 3 in vertical position. This gives us in total 24 modules which are containing 1536 LEDs (8*8 * 3*8).
 
 # Hardware
-Fritzing schames are here:[(\doc\fritzing)]
+Fritzing schematics are here: ![(\doc\fritzing)]
 First let's start with the controller. Actually any Arduino will work, I've used Mega due to large number of digital output pins. You could also use shift register and alter way of addressing Select Slave lines in *Display::send(...)*.
 
 You will need extra power supply for driving LEDs - assuming that you are going to use more than one LED Matrix.
@@ -16,10 +16,14 @@ On the schematic below you can see the wiring of LEDs, MAX and Arduino:
 This one is equivalent, but instead of single LEDs we have PINs of 788BS: 
 ![](/doc/fritzing/MAX7219-788BS_schem.png)
 
-## Connecting all LED Matix together
+## Connecting all LED Matrix together
+In the previous chapter we've seen how to connect single LED Matrix wit MAX chip. Now we will connect multiple LED Matrix together into one large display. My test display consist of 8x3 LED Matrix, and you can see them on schematic below. 
 ![](/doc/fritzing/LED_Display_schem.png)
-All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip requires separate Slave Select line. 
-The position of LED Marix on the schematic above directly corresponds to their location on the accrual display, that I've used for testing. 
+Each 3-PIN connector symbolizes one module described in previous chapter (LED Matrix + MAX72xx). Now we connect all those modules together. All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip requires separate Slave Select line. 
+The position of LED Matrix on the schematic above directly corresponds to their location on the accrual display, that I've used for testing. Additionally each module has description indicating it's position and Select Slave line, so for example: *(2,1) SS: 35* gives us second module on third row (counting from zero) and 35 PIN on Arduino for Select Slave line.
+
+Here is the physical display with position of single LED modules and their Select Slave lines:
+![](/doc/fritzing/display_pins.png)
 
 #Software
 ## Setting things up
@@ -244,7 +248,7 @@ void loop() {
 
 In the setup method we have created instance of *ScrollingText8x8* and also scrolling area that will be displayed in the left corner of the display. Frames will be animated every 200ms. Once scrolling of given text is done, it will start from the beginning. 
 
-It is important to NOT define any delays in *loop()* because *scr->cycle()* has to be called as offen as possible in order to get smooth animation. The implementation is based on State Machine Pattern - so it uses CPU only when there is something to be done, there are not delays inside.
+It is important to NOT define any delays in *loop()* because *scr->cycle()* has to be called as often as possible in order to get smooth animation. The implementation is based on State Machine Pattern - so it uses CPU only when there is something to be done, there are not delays inside.
 
 
 
