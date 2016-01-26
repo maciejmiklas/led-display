@@ -27,7 +27,7 @@ The main class of your interest will be the *Display.h* - it's responsible for s
 
 Before we start painting it's necessary to set thing up. Code below creates 2D array with Select Slave lines and initializes display. 
 
-```
+``` cpp
 #include <Display.h>
 
 Display *disp;
@@ -131,7 +131,7 @@ Here is the Arduino sketch: [SimpleBitmat](/examples/SimpleBitmat/SimpleBitmat.i
 First we have to create data that can hold out bitmap - it will have 3x2 bytes. This gives us up to 3 lines and 16 horizontal pixels. But the size of out bitmap is 
 9x3 pixels and this will be also size of the painted rectangle. It should be as small as possible, so that you can place another bitmap next to it. The display will obviously only paint the rectangle and not whole *data* array.
 
-```
+``` cpp
 void setup() {
   util_setup();
   log_setup();
@@ -172,7 +172,7 @@ Here you can find Arduino sketch containing whole example: [StaticText](/example
 
 Your sketch needs setup method as we've already seen above. So we are assuming that you have already created *Display* and now you would like to show simple text. For this you should use class class *StaticText8x8*, it could look like this one:
 
-```
+``` cpp
 StaticText8x8 *sta1;
 StaticText8x8 *sta2;
 
@@ -211,7 +211,8 @@ As a result we would display text "Hello !" on (3,10). Font is defined in class:
 This sketch contains whole example: [ScrollingText](/examples/ScrollingText). Below we will discuss simplified version, so that you can get the idea.
 
 As in the previous example - we are assuming, that you have proper instance of *Display*, but this time you would like to show text scrolling within a box. The class *ScrollingText8x8* will handle it:
-```
+
+``` cpp
 ScrollingText8x8 *message;
 const char *textMessage;
 Display *disp;
