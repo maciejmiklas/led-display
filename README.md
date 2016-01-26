@@ -11,15 +11,15 @@ You will need extra power supply for driving LEDs - assuming that you are going 
 ## Driving single LED Matrix
 I've used 788BS LED Matrix, this is the one with common anode. If you have one with common cathode, you will have to rewire pins. 
 On the schematic below you can see the wiring of LEDs, MAX and Arduino:
-<img src="/doc/fritzing/MAX7219-788BS-LEDs_schem.png" width="800px"/>
+<img src="/doc/fritzing/MAX7219-788BS-LEDs_schem.png" width="600px"/>
 
 
 This one is equivalent, but instead of single LEDs we have PINs of 788BS: 
-<img src="/doc/fritzing/MAX7219-788BS_schem.png" width="800px"/>
+<img src="/doc/fritzing/MAX7219-788BS_schem.png" width="600px"/>
 
 ## Connecting all LED Matrix together
 In the previous chapter we've seen how to connect single LED Matrix wit MAX chip. Now we will connect multiple LED Matrix together into one large display. My test display consist of 8x3 LED Matrix, and you can see them on schematic below. 
-<img src="/doc/fritzing/LED_Display_schem.png" width="800px"/>
+<img src="/doc/fritzing/LED_Display_schem.png" width="600px"/>
 Each 3-PIN connector symbolizes one module described in previous chapter (LED Matrix + MAX72xx). Now we connect all those modules together. All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip requires separate Slave Select line. 
 The position of LED Matrix on the schematic above directly corresponds to their location on the accrual display, that I've used for testing. Additionally each module has description indicating it's position and Select Slave line, so for example: *(2,1) SS: 35* gives us second module on third row (counting from zero) and 35 PIN on Arduino for Select Slave line.
 
