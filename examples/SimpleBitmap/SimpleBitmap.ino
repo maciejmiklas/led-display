@@ -68,7 +68,7 @@ void setup() {
   data[6][0] = B00011110; data[6][1] = B00000000;
   data[7][0] = B00001100; data[7][1] = B00000000;
 
-  disp->paint(27, 9, 9, 8, data);
+  disp->paint(27, 9, 8, 8, data);
 }
 
 void loop() {

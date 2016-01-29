@@ -62,7 +62,7 @@ void setup() {
 
   message = new ScrollingText8x8(disp, 48, 50, 5);
   message->init();
-  textMessage = "This is an example of multiple scorlling areas ;)";
+  textMessage = "This is an example of multiple scrolling areas ;)";
   message->scroll(8, 8, ScrollingText8x8::LOOP, textMessage);
 }
 

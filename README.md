@@ -10,45 +10,48 @@ First let's start with the controller, actually any Arduino will work, I've used
 You will need extra power supply for driving LEDs - assuming that you are going to use more than one LED Matrix.
 
 ## Driving single LED Matrix Module 
-I've used 788BS LED Matrix, this is the one with common anode and the MAX7219. The schematic below illustrates the wiring of LEDs, MAX and Arduino:
+I've used the MAX7219 and 788BS LED Matrix, this is the one with common anode. The schematic below illustrates the wiring of LEDs, MAX and Arduino:
 <img src="/doc/fritzing/MAX7219-788BS-LEDs_schem.png" width="600px"/>
 
-This one is equivalent, but instead of single LEDs we have PINs  layout for 788BS LED Modules: 
+This one is equivalent, but instead of single LEDs we have PINs layout of LED Modules: 
 <img src="/doc/fritzing/MAX7219-788BS_schem.png" width="600px"/>
 
-It might happen, that your LED Module has common cathode, in this case you have to rewire connection to MAX chip. You just have to keep in mind, that MAX hat two sets of pins, that are relevant here: Dig0-Dig7 is supposed to be connected to cathodes (-) and SegA-SegG to anodes(+). Additionally such change will swap rows with columns within sine LED module. 
+It might happen, that your LED Module has common cathode, in this case you have to rewire connection to MAX chip. You just have to keep in mind, that MAX hat two sets of pins, that are relevant here: Dig0-Dig7 are supposed to be connected to cathodes (-) and SegA-SegG to anodes(+). Additionally such change will swap rows with columns within sine LED module. 
 
 ## Connecting all LED Matrix together
 In the previous chapter we've seen how to connect single LED Module with MAX chip. Now we will connect multiple LED Modules together into one large display. 
-Below is the physical display that I've used for testing and examples. I've marked position of each LED module and Select Slave line used by its MAX chip.
+Below is the physical display that I've used for testing and examples. Each LED Module has label indicating its position and Select Slave line.
+
 <img src="/doc/img/display_pins.jpg" width="600px"/>
 
 Here is the wiring:
+
 <img src="/doc/fritzing/LED_Display_schem.png" width="600px"/>
 
-Each 3-PIN connector on schematic above symbolizes one module described in previous chapter (LED Matrix + MAX72xx), now we've connected all those modules together. All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip occupies separate Slave Select line. 
-The position of LED Matrix on the schematic above directly corresponds to their location on the accrual display, that I've used for testing. Additionally each module has description indicating it's position and Select Slave line, so for example: *(2,1) SS: 35* gives us second module on third row (counting from zero) and 35 PIN on Arduino for Select Slave line.
+Each 3-PIN connector on schematic above symbolizes one module described in previous chapter (LED Matrix + MAX72xx), now we've connected all those modules together. 
+All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip occupies separate Slave Select line. 
+The position of LED Matrix on the schematic above directly corresponds to their location on the physical display, that I've used for testing. Additionally each module has description indicating it's position and Select Slave line, so for example: *(2,1) SS: 35* gives us second module on third row (counting from zero) and 35 PIN on Arduino for Select Slave line.
 
 #Software
 ## Compiling 
-We are using standard Arduino libraries, so they are already available, the only exception is ArdLog. You have to import this LIB into your IDE. This basically means, that you have to download latest release: https://github.com/maciejmiklas/ArdLog and unzip it into folder, where you should place external libraries. In case of standard Arduino IDE it's *~\Documents\Arduino\libraries*. On the end you should have following structure:
+We are using standard Arduino libraries, so they are already available, the only exception is ArdLog. You have to import this LIB into your IDE. This basically means, that you have to download right release: https://github.com/maciejmiklas/ArdLog/releases/tag/v1.0.0 and unzip it into folder, where you usually place external libraries. In case of standard Arduino IDE it's *~/Documents/Arduino/libraries*. On the end you should have following structure:
 ``` bash
 $ pwd
-/Users/mmiklas/Documents/Arduino/libraries/ArdLog
+~/Documents/Arduino/libraries/ArdLog
 
 $ ls
 ArdLog.cpp ArdLog.h   LICENSE    README.md
 ```
 
 ## Communication with MAX72xxx
-We are using standard SPI library, and Select Slave line on MAX chip for dressing. MAX is configured in LED Matrix mode - so there is nothing special. The setup method is in: *Display::setup()*
+We are using standard SPI library, and Select Slave line on MAX chip for addressing. MAX is configured in LED Matrix mode - so there is nothing special. The setup method can be found in: *Display::setup()*
 
 ## Setting things up
 The main class of your interest will be the *Display.h* - it's responsible for setup of MAX chips and provides API for painting. 
 
 Before we start painting it's necessary to set thing up. Code below creates 2D array containing Select Slave lines and initializes display. The display itself consist of 3 rows each one has 8 LED Modules. Obviously you can choose any responsible size, but I will stick to this one in examples below.
 
-The layout of mentioned 2D array corresponds to physical display: each LED Mole has dedicated MAX chip, and each chip has dedicated Select Slave line. First dimension of our array indicates physical row on display, second dimension indicates LED Module within this row, and the value contains PIN number for Select Slave line.
+The layout of mentioned 2D array corresponds to physical display: each LED Mole has dedicated MAX chip, and each chip has dedicated Select Slave line. First dimension of our array indicates physical row on display, second dimension indicates LED Module within this row, and the value itself contains PIN number for Select Slave line.
 
 ``` cpp
 #include <Display.h>
@@ -130,7 +133,7 @@ Display consists of a few kits, but form API perspective those kits are connecte
       v (y)
 ```
 
-The paint method has following syntax: *paint(pixel_t x, pixel_t y, pixel_t width, pixel_t height, uint8_t **data)*. It allows you to paint a bitmap on given coordinates with limited width and height. So you can for example paint a bitmap on (3,4) that has 25x3 pixels. It might be larger than a actual display size - in this case it will get trimmed.
+The paint method has following syntax: *paint(pixel_t x, pixel_t y, pixel_t width, pixel_t height, uint8_t \*\*data)*. It allows you to paint a bitmap on given coordinates with limited width and height. So you can for example paint a bitmap on (3,4) that has 25x3 pixels. It might be larger than a actual display size - in this case it will get trimmed.
 This is obvious and simple, but there is one catch - you have to provide right *data*. This is 2D array, where first dimension indicates vertical and second  horizontal position on the display. Technically speaking *data* is flat array of pointers and each pointer points to array that represents one horizontal line on the display.
 
 Moving over first dimension of *data* traverses over lines of the display. The second dimension of *data* represents horizontal pixels on display, but there one optimization in place. Since our display consist of simple LEDs they can be either in on or off state, each pixel is not being represented by one byte, but by one bit. In order to cover 8 pixels in horizontal position we need one byte (to cover 24 pixels we need 3 bytes).
@@ -139,20 +142,22 @@ For example to fully cover display consisting of 8x3 LED kits (one used in our e
 
 The *paint(...)* method updates internal buffer, in order to send content of this buffer to MAX chips you have to call *flush()*. The idea behind is to give you possibility to display few bitmaps on the display and after that paint the result. You can program few independent routines, that will update different part of the display and flush all changes at once.
 
-Communication with MAX chips is not very fast and sending content of the whole display with every *flush()* is time consuming. You might be able to speed up this process by enabling double buffering (set *DEOUBLE_BUFFER* in *Display.h* to true). In this case *flush()* method will send only bytes that have changed, so you can call *flush()* with every loop and do not have to worry about loosing performance. The only drawback is increased usage of RAM: we are creating 2D array that allocates 8 bytes per each LED Kit plus few pointers that are usually required to maintain arrays. However 2D arrays in this project are well optimized (hopefully), because in order to create dynamic 2D array, we are creating actually 2 arrays with calculated offset (see: *alloc2DArray8(....)* in *Util.h*).
+Communication with MAX chips is not very fast and sending content of the whole display with every *flush()* is time consuming. You might be able to speed up this process by enabling double buffering (set *DEOUBLE_BUFFER* in *Display.h* to true). In this case *flush()* method will send only bytes that have changed, so you can call *flush()* with every loop and do not have to worry about loosing performance. The only drawback is increased usage of RAM: we are creating 2D array that allocates 8 bytes per each LED Kit plus few pointers that are usually required to maintain arrays. 
+
+2D arrays in this project are optimized (hopefully), because in order to create dynamic 2D array, we are creating actually 2 arrays with calculated offset (see: *alloc2DArray8(....)* in *Util.h*).
 
 # Examples
 # Requires Libs
-Examples are using ArdLogger, so you have to import this lib into our Arduino IDE. Here are instructions: https://github.com/maciejmiklas/ArdLog
+Examples are using *ArdLog*, so you have to import this lib into our Arduino IDE. Here are instructions: https://github.com/maciejmiklas/ArdLog
 
 ## Simple Bitmap
+In this example we will display simple static bitmap with 8x8 pixels:
 <img src="/doc/img/dispV.jpg" width="300px"/>
 
+Here is the Arduino sketch: [SimpleBitmat](/examples/SimpleBitmat/SimpleBitmat.ino), now lest go over it:
 
-Here is the Arduino sketch: [SimpleBitmat](/examples/SimpleBitmat/SimpleBitmat.ino), now let's discuss it:
-
-First we have to create data that can hold out bitmap - it will have 3x2 bytes. This gives us up to 3 lines and 16 horizontal pixels. But the size of out bitmap is 
-9x3 pixels and this will be also size of the painted rectangle. It should be as small as possible, so that you can place another bitmap next to it. The display will obviously only paint the rectangle and not whole *data* array.
+First we have to create data that can hold out bitmap - it will have 3x2 bytes. This gives us up to 3 lines and 16 horizontal pixels. But the size of out bitmap is 8x8 pixels and this will be also size of the painted rectangle. It should be as small as possible, so that you can place another bitmap next to it. 
+The display will obviously only paint the rectangle given by width/height and not whole *data* array. This is normal, that data array can hold more pixels than accrual size of out bitmap, because size of data is a multiplication o 8.
 
 ``` cpp
 void setup() {
@@ -174,7 +179,7 @@ void setup() {
   data[6][0] = B00011110; data[6][1] = B00000000;
   data[7][0] = B00001100; data[7][1] = B00000000;
 
-  disp->paint(27, 9, 9, 8, data);
+  disp->paint(27, 9, 8, 8, data);
 }
 
 void loop() {
@@ -189,11 +194,14 @@ void loop() {
 ```
 
 ## Static Text
+Now we will display static text, actually those are going to be two independent lines.
 <img src="/doc/img/dispStatic.jpg" width="300px"/>
 
 Here you can find Arduino sketch containing whole example: [StaticText](/examples/StaticText). 
 
-Your sketch needs setup method as we've already seen above. So we are assuming that you have already created *Display* and now you would like to show simple text. For this you should use class class *StaticText8x8*, it could look like this one:
+Your sketch needs setup method as we've already seen above, so we will not discus it again. In order to display text you should use class class *StaticText8x8*. Font is defined in class: [Font8x8](https://github.com/maciejmiklas/LEDDisplay/blob/master/Font8x8.cpp), each character has 8x8 pixels. 
+
+Your code could look like this one:
 
 ``` cpp
 StaticText8x8 *sta1;
@@ -223,22 +231,19 @@ void loop() {
   delay(100000);
 }
 ```
-As a result we would display text "Hello !" on (3,10). Font is defined in class: [Font8x8](https://github.com/maciejmiklas/LEDDisplay/blob/master/Font8x8.cpp), each character has 8x8 pixels.
+
+We have created two text areas, each one containing differet text and being display one under another.
 
 ## Single Scrolling Text
+This time we are going to display area containing text that will scroll from left to right. Link below contains youtube video - you can start it by clicking on it.
 [![](/doc/img/scrollingTextSimple_youtube.jpg)](https://youtu.be/0sQ3GSuFi54)
 
-## Scrolling Text Mixed
-[![](/doc/img/scrollingTextMixed_youtube.jpg)](https://youtu.be/nanXzz2FVsY)
-
-This sketch contains whole example: [ScrollingText](/examples/ScrollingText). Below we will discuss simplified version, so that you can get the idea.
-
-As in the previous example - we are assuming, that you have proper instance of *Display*, but this time you would like to show text scrolling within a box. The class *ScrollingText8x8* will handle it:
-
+Lest analyze code ([Arduino sketch](/examples/ScrollingTextSimple)):
 ``` cpp
+Display *disp;
+
 ScrollingText8x8 *message;
 const char *textMessage;
-Display *disp;
 
 void setup() {
   util_setup();
@@ -260,6 +265,73 @@ void loop() {
   log_cycle();
 
   message->cycle();
+  
+  disp->flush();
+}
+```
+
+The initialization of the display is the same as in examples above. 
+
+In order to display scrolling text we are using *ScrollingText8x8*. In *setup()* we are creating instance of this class and calling method *scroll(...)*. This part only initializes scrolling, but does not play the animation itself. In order to play the animation you have to call *cycle()* and *flush()* in main loop and you must not have any additional delays, otherwise you might get jagged animation.
+
+During creation of *ScrollingText8x8* we have provided speed of animation - actually it's a delay of 50ms per frame. Now calling *cycle()* in main loop will produce frames of animation according to provided delay. When the times comes the method *cycle()* will update display and finally method *flush()* will send updated content to MAX chips.
+
+The whole implementation of *ScrollingText8x8* is non blocking and it consumes CPU only when there is something to be done. Internally it's using simple State Machine.
+
+There is one last thing: **you have to keep animated text in global variable**  in order to avoid garbage collection. It's not being copied in *scroll()* to avoid memory fragmentation.
+
+## Scrolling Text Mixed
+This example is similar to one above, but this time we will display several scrolling areas. In order to view animation on youtube click on image.
+[![](/doc/img/scrollingTextMixed_youtube.jpg)](https://youtu.be/nanXzz2FVsY)
+[Here is the sketch](/examples/ScrollingText). 
+
+This code is similar to one with one scrolling area, but this time we have a few. We have created few instances of *ScrollingText8x8*, each one containing different text and position on the display. In order to play animation you have to call *cycle()* on each instance, but you have to call only once *flush()*. Each call on *cycle()* will update it's part of the display and flush will send changed display o MAX chips.
+
+``` cpp
+void setup() {
+  util_setup();
+  log_setup();
+  
+  ss = createSS();
+
+  disp = new Display(8, 3, ss);
+  disp->setup();
+
+  uint8_t borderSpeed = 20;
+  textUpDown = "* * * * * ";
+  up = new ScrollingText8x8(disp, 64, borderSpeed, 1);
+  up->init();
+  up->scroll(0, 0, ScrollingText8x8::CONTINOUS_LOOP, textUpDown);
+  
+  down = new ScrollingText8x8(disp, 64, borderSpeed, 2);
+  down->init();
+  down->scroll(0, 16, ScrollingText8x8::CONTINOUS_LOOP, textUpDown);
+ 
+  textLeftRight = "* ";
+  left = new ScrollingText8x8(disp, 8, borderSpeed, 3);
+  left->init();
+  left->scroll(0, 8, ScrollingText8x8::CONTINOUS_LOOP, textLeftRight);
+   
+  right = new ScrollingText8x8(disp, 8, borderSpeed, 4);
+  right->init();
+  right->scroll(56, 8, ScrollingText8x8::CONTINOUS_LOOP, textLeftRight);
+
+  message = new ScrollingText8x8(disp, 48, 50, 5);
+  message->init();
+  textMessage = "This is an example of multiple scrolling areas ;)";
+  message->scroll(8, 8, ScrollingText8x8::LOOP, textMessage);
+}
+
+void loop() {
+  util_cycle();
+  log_cycle();
+
+  up->cycle();
+  down->cycle();
+  right->cycle();
+  message->cycle();
+  left->cycle();
+  
   
   disp->flush();
 }
