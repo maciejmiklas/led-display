@@ -5,34 +5,50 @@ I've tested the whole idea on display that consist of 8 LED Modules in horizonta
 # Hardware
 Fritzing schematics are here: [\doc\fritzing](\doc\fritzing)
 
-First let's start with the controller. Actually any Arduino will work, I've used Mega due to large number of digital output pins. You could also use shift register and alter way of addressing Select Slave lines in *Display::send(...)*.
+First let's start with the controller, actually any Arduino will work, I've used Mega due to large number of digital output pins. You could also use Nano with shift register and alter way of addressing Select Slave lines in *Display::send(...)*.
 
 You will need extra power supply for driving LEDs - assuming that you are going to use more than one LED Matrix.
 
-## Driving single LED Matrix
-I've used 788BS LED Matrix, this is the one with common anode. If you have one with common cathode, you will have to rewire pins. 
-On the schematic below you can see the wiring of LEDs, MAX and Arduino:
+## Driving single LED Matrix Module 
+I've used 788BS LED Matrix, this is the one with common anode and the MAX7219. The schematic below illustrates the wiring of LEDs, MAX and Arduino:
 <img src="/doc/fritzing/MAX7219-788BS-LEDs_schem.png" width="600px"/>
 
-
-This one is equivalent, but instead of single LEDs we have PINs of 788BS: 
+This one is equivalent, but instead of single LEDs we have PINs  layout for 788BS LED Modules: 
 <img src="/doc/fritzing/MAX7219-788BS_schem.png" width="600px"/>
 
+It might happen, that your LED Module has common cathode, in this case you have to rewire connection to MAX chip. You just have to keep in mind, that MAX hat two sets of pins, that are relevant here: Dig0-Dig7 is supposed to be connected to cathodes (-) and SegA-SegG to anodes(+). Additionally such change will swap rows with columns within sine LED module. 
+
 ## Connecting all LED Matrix together
-In the previous chapter we've seen how to connect single LED Matrix wit MAX chip. Now we will connect multiple LED Matrix together into one large display. My test display consist of 8x3 LED Matrix, and you can see them on schematic below. 
-<img src="/doc/fritzing/LED_Display_schem.png" width="600px"/>
-
-Each 3-PIN connector symbolizes one module described in previous chapter (LED Matrix + MAX72xx). Now we connect all those modules together. All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip requires separate Slave Select line. 
-The position of LED Matrix on the schematic above directly corresponds to their location on the accrual display, that I've used for testing. Additionally each module has description indicating it's position and Select Slave line, so for example: *(2,1) SS: 35* gives us second module on third row (counting from zero) and 35 PIN on Arduino for Select Slave line.
-
-Here is the physical display with marked position of LED modules and their Select Slave lines:
+In the previous chapter we've seen how to connect single LED Module with MAX chip. Now we will connect multiple LED Modules together into one large display. 
+Below is the physical display that I've used for testing and examples. I've marked position of each LED module and Select Slave line used by its MAX chip.
 <img src="/doc/img/display_pins.jpg" width="600px"/>
 
+Here is the wiring:
+<img src="/doc/fritzing/LED_Display_schem.png" width="600px"/>
+
+Each 3-PIN connector on schematic above symbolizes one module described in previous chapter (LED Matrix + MAX72xx), now we've connected all those modules together. All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip occupies separate Slave Select line. 
+The position of LED Matrix on the schematic above directly corresponds to their location on the accrual display, that I've used for testing. Additionally each module has description indicating it's position and Select Slave line, so for example: *(2,1) SS: 35* gives us second module on third row (counting from zero) and 35 PIN on Arduino for Select Slave line.
+
 #Software
+## Compiling 
+We are using standard Arduino libraries, so they are already available, the only exception is ArdLog. You have to import this LIB into your IDE. This basically means, that you have to download latest release: https://github.com/maciejmiklas/ArdLog and unzip it into folder, where you should place external libraries. In case of standard Arduino IDE it's *~\Documents\Arduino\libraries*. On the end you should have following structure:
+``` bash
+$ pwd
+/Users/mmiklas/Documents/Arduino/libraries/ArdLog
+
+$ ls
+ArdLog.cpp ArdLog.h   LICENSE    README.md
+```
+
+## Communication with MAX72xxx
+We are using standard SPI library, and Select Slave line on MAX chip for dressing. MAX is configured in LED Matrix mode - so there is nothing special. The setup method is in: *Display::setup()*
+
 ## Setting things up
 The main class of your interest will be the *Display.h* - it's responsible for setup of MAX chips and provides API for painting. 
 
-Before we start painting it's necessary to set thing up. Code below creates 2D array with Select Slave lines and initializes display. 
+Before we start painting it's necessary to set thing up. Code below creates 2D array containing Select Slave lines and initializes display. The display itself consist of 3 rows each one has 8 LED Modules. Obviously you can choose any responsible size, but I will stick to this one in examples below.
+
+The layout of mentioned 2D array corresponds to physical display: each LED Mole has dedicated MAX chip, and each chip has dedicated Select Slave line. First dimension of our array indicates physical row on display, second dimension indicates LED Module within this row, and the value contains PIN number for Select Slave line.
 
 ``` cpp
 #include <Display.h>
@@ -91,7 +107,7 @@ void setup() {
   ss = createSS();
 
   
-  // Test display consist of 8x3 LED Kits (3 rows, each one 8 LED Kits)
+  // Test display consist of 8x3 LED Modules (3 rows, each one 8 Modules)
   disp = new Display(8, 3, ss);
   disp->setup();
 }
