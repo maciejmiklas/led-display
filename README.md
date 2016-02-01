@@ -187,7 +187,8 @@ void loop() {
   util_cycle();
   log_cycle();
   
-  // Paint method updates only internal buffer, in order to send data to MAX chips you have to flush display. 
+  // Paint method updates only internal buffer, in order to send data to 
+  // MAX chips you have to flush display. 
   disp->flush();
   
   delay(100000);
