@@ -1,9 +1,9 @@
 This project contains driver for 8x8 LED Modules controlled via MAX722xx. It allows you to build display of custom size that is only limited by the hardware itself. Vertical and horizontal size can contain up to 256 modules, but before reaching this limit you would run out of Slave Select lines for controlling MAX chips, or you would be limited by amount of RAM. The fact is: you can control reasonable amount of MAX chips and build display of custom size ;)
 
-I've tested the whole idea on display that consist of 8 LED Modules in horizontal and 3 in vertical position. This gives us in total 24 modules which are containing 1536 LEDs (8*8 * 3*8).
+I've tested the whole idea on display that consist of 8 LED Modules in horizontal and 3 in vertical position. This gives us 24 modules which are containing 1536 LEDs (8*8 * 3*8).
 
 # Hardware
-Fritzing schematics are here: [\doc\fritzing](\doc\fritzing)
+Fritzing schematics are here: [/doc/fritzing](doc/fritzing)
 
 First let's start with the controller, actually any Arduino will work, I've used Mega due to large number of digital output pins. You could also use Nano with shift register and alter way of addressing Select Slave lines in *Display::send(...)*.
 
@@ -11,9 +11,11 @@ You will need extra power supply for driving LEDs - assuming that you are going 
 
 ## Driving single LED Matrix Module 
 I've used the MAX7219 and 788BS LED Matrix, this is the one with common anode. The schematic below illustrate wiring of LEDs, MAX and Arduino:
+
 <img src="/doc/fritzing/MAX7219-788BS-LEDs_schem.png" width="600px"/>
 
-This one is equivalent, but instead of single LEDs we have PIN layout of LED Modules: 
+This one is equivalent, but instead of single LEDs we have PIN layout for LED Module: 
+
 <img src="/doc/fritzing/MAX7219-788BS_schem.png" width="600px"/>
 
 It might happen, that your LED Module has common cathode, in this case you have to rewire connection to MAX chip. You just have to keep in mind, that MAX hat two sets of pins, that are relevant here: Dig0-Dig7 are supposed to be connected to cathodes (-) and SegA-SegG to anodes(+). Additionally such change will swap rows with columns within sine LED module. 
@@ -30,7 +32,7 @@ Here is the wiring:
 
 Each 3-PIN connector on schematic above symbolizes one module described in previous chapter (LED Matrix + MAX72xx), now we've connected all those modules together.  All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip occupies separate Slave Select line. 
 
-The position of LED Matrix on the schematic above directly corresponds to their location on the physical display, that I've used for testing. Additionally each module has description indicating it's position and Select Slave line, so for example: *(2,1) SS: 35* gives us second module on third row (counting from zero) and 35 PIN on Arduino for Select Slave line.
+The position of LED Matrix on the schematic above directly corresponds to their location on the physical display that I've used for testing. Additionally each module has description indicating it's position and Select Slave line, so for example: *(2,1) SS: 35* gives us second module on third row (counting from zero) and PIN:35 on Arduino for Select Slave line.
 
 #Software
 ## Compiling 
@@ -47,9 +49,9 @@ ArdLog.cpp ArdLog.h   LICENSE    README.md
 We are using standard SPI library, and Select Slave line on MAX chip for addressing. MAX is configured in LED Matrix mode - so there is nothing special. The setup method can be found in: *Display::setup()*
 
 ## Setting things up
-The main class of our interest will be the *Display.h* - it's responsible for setup of MAX chips and provides API for painting. 
+The main class of our interest will be the *Display* - it's responsible for setup of MAX chips and provides API for painting. 
 
-Before we start painting it's necessary to set thing up. Code below creates 2D array containing Select Slave lines and initializes display. The display itself consist of 3 rows each one has 8 LED Modules. Obviously you can choose any responsible size, but I will stick to this one.
+Before we start painting it's necessary to set thing up. Code below creates 2D array containing Select Slave lines and initializes display. The display itself consist of 3 rows, each one has 8 LED Modules. Obviously you can choose any responsible size, but I will stick to this one.
 
 The layout of mentioned 2D array corresponds to physical display: each LED Module has dedicated MAX chip, and each chip has dedicated Select Slave line. First dimension of our array indicates physical row on display, second dimension indicates LED Module within this row, and the value itself contains PIN number for Select Slave line.
 
@@ -133,7 +135,8 @@ Display consists of a few kits, but form API perspective those kits are connecte
       v (y)
 ```
 
-The paint method has following syntax: *paint(pixel_t x, pixel_t y, pixel_t width, pixel_t height, uint8_t \*\*data)*. It allows you to paint a bitmap on given coordinates with limited width and height. So you can for example paint a bitmap on (3,4) that has 25x3 pixels. It might be larger than a actual display size - in this case it will get trimmed.
+The paint method has following syntax: *paint(pixel_t x, pixel_t y, pixel_t width, pixel_t height, uint8_t data)*. It allows you to paint a bitmap on given coordinates with limited width and height. So you can for example paint a bitmap on (3,4) that has 25x3 pixels. It might be larger than a actual display size - in this case it will get trimmed.
+
 This is obvious and simple, but there is one catch - you have to provide right *data*. This is 2D array, where first dimension indicates vertical and second  horizontal position on the display. Technically speaking *data* is flat array of pointers and each pointer points to array that represents one horizontal line on the display.
 
 Moving over first dimension of *data* traverses over lines of the display. The second dimension of *data* represents horizontal pixels within single line, where each byte represents 8 pixels. Since our display consist of simple LEDs they can be either in on or off state, so each pixel is not being represented by one byte, but by one bit. In order to cover 16 pixels in horizontal position we need two bytes, 24 pixels requires 3 bytes, and so on.
@@ -157,7 +160,8 @@ In this example we will display simple static bitmap with 8x8 pixels:
 
 Here is the Arduino sketch: [SimpleBitmat](/examples/SimpleBitmat/SimpleBitmat.ino), now lest go over it:
 
-First we have to initialize display, as we have done in above in chapter "Setting things up". Next we have to create data that can hold our bitmap - it will have 3x2 bytes. This gives us up to 3 lines and 16 horizontal pixels. But the size of our bitmap is 8x8 pixels and this will be also the size of the painted rectangle. It should be as small as possible, so that you could place another bitmap next to it. 
+First we have to initialize display, as we have done in above in chapter "Setting things up". Next we have to create data that can hold our bitmap - it will have 3x2 bytes. This gives us up to 3 lines and 16 horizontal pixels. But the size of our bitmap is 8x8 pixels and this will be also the size of the painted rectangle. It should be as small as possible, so that you could place another bitmap right next to it. 
+
 The display will obviously only paint the rectangle given by width/height and not whole *data* array. This is normal, that data array can hold more pixels than accrual size of out bitmap, because size of data is a multiplication o 8 and bitmap not necessary.
 
 ``` cpp
@@ -197,6 +201,7 @@ void loop() {
 
 ## Static Text
 Now we will display static text, actually those are going to be two independent lines.
+
 <img src="/doc/img/dispStatic.jpg" width="300px"/>
 
 Here you can find Arduino sketch containing whole example: [StaticText](/examples/StaticText). 
@@ -238,6 +243,7 @@ We have created two text areas, each one containing different text and being dis
 
 ## Single Scrolling Text
 This time we are going to display area containing text that will scroll from left to right. Link below contains youtube video - you can start it by clicking on it.
+
 [![](/doc/img/scrollingTextSimple_youtube.jpg)](https://youtu.be/0sQ3GSuFi54)
 
 Lest analyze code ([Arduino sketch](/examples/ScrollingTextSimple)):
@@ -280,11 +286,13 @@ During creation of *ScrollingText8x8* we have provided speed of animation - actu
 
 The whole implementation of *ScrollingText8x8* is non blocking and it consumes CPU only when there is something to be done. Internally it's using simple State Machine.
 
-There is one last thing: **you have to keep animated text in global variable**  in order to avoid garbage collection. It's not being copied in *scroll()* to avoid memory fragmentation.
+There is one last thing: **you have to keep text used for animation in global variable**  in order to avoid garbage collection. It's not being copied in *scroll()* to avoid memory fragmentation.
 
 ## Scrolling Text Mixed
 This example is similar to one above, but this time we will display several scrolling areas. In order to view animation on youtube click on image.
+
 [![](/doc/img/scrollingTextMixed_youtube.jpg)](https://youtu.be/nanXzz2FVsY)
+
 [Here is the sketch](/examples/ScrollingText). 
 
 This code is similar to one with one scrolling area, but this time we have a few. We have created few instances of *ScrollingText8x8*, each one containing different text and position on the display. In order to play animation you have to call *cycle()* on each instance, but you have to call only once *flush()*. Each call on *cycle()* will update it's part of the display and flush will send changed display o MAX chips.
