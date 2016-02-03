@@ -30,13 +30,13 @@ Here is the wiring:
 
 <img src="/doc/fritzing/LED_Display_schem.png" width="600px"/>
 
-Each 3-PIN connector on schematic above symbolizes one module described in previous chapter (LED Matrix + MAX72xx), now we've connected all those modules together.  All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip occupies separate Slave Select line. 
+Each 3-PIN connector on schematic above symbolizes one module described in previous chapter (LED Matrix + MAX72xx), now we've connected all those modules together. All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip occupies separate Slave Select line. 
 
 The position of LED Matrix on the schematic above directly corresponds to their location on the physical display that I've used for testing. Additionally each module has description indicating it's position and Select Slave line, so for example: *(2,1) SS: 35* gives us second module on third row (counting from zero) and PIN:35 on Arduino for Select Slave line.
 
 #Software
 ## Compiling 
-We are using standard Arduino libraries, so they are already available, the only exception is ArdLog. You have to import this LIB into your IDE. This basically means, that you have to download right release: https://github.com/maciejmiklas/ArdLog/releases/tag/v1.0.0 and unzip it into folder, where you usually place external libraries. In case of standard Arduino IDE on Mac it's *~/Documents/Arduino/libraries*. On the end you should have following structure:
+We are using standard Arduino libraries, so they are already available, the only exception is [ArdLog](https://github.com/maciejmiklas/ArdLog). You have to import this LIB into your IDE. This basically means, that you have to download right release: https://github.com/maciejmiklas/ArdLog/releases/tag/v1.0.0 and unzip it into folder, where you usually place external libraries. In case of standard Arduino IDE on Mac it's *~/Documents/Arduino/libraries*. On the end you should have following structure:
 ``` bash
 $ pwd
 ~/Documents/Arduino/libraries/ArdLog
@@ -46,7 +46,7 @@ ArdLog.cpp ArdLog.h   LICENSE    README.md
 ```
 
 ## Communication with MAX72xxx
-We are using standard SPI library, and Select Slave line on MAX chip for addressing. MAX is configured in LED Matrix mode - so there is nothing special. The setup method can be found in: *Display::setup()*
+We are using standard SPI library and Select Slave line on MAX chip for addressing. MAX is configured in LED Matrix mode - so there is nothing special. The setup method can be found in: *Display::setup()*
 
 ## Setting things up
 The main class of our interest will be the *Display* - it's responsible for setup of MAX chips and provides API for painting. 
@@ -206,9 +206,9 @@ Now we will display static text, actually those are going to be two independent 
 
 Here you can find Arduino sketch containing whole example: [StaticText](/examples/StaticText). 
 
-Your sketch needs setup method as we've already seen above (chapter: "Setting things up"), so we will not discus it again. In order to display text you should use *StaticText8x8*. Font is defined in: [Font8x8](https://github.com/maciejmiklas/LEDDisplay/blob/master/Font8x8.cpp), each character has 8x8 pixels. 
+Your sketch needs setup method as we've already seen above (chapter: [Setting things up](#setting-things-up)), so we will not discus it again. In order to display text you should use *StaticText8x8*. Font is defined in: [Font8x8](https://github.com/maciejmiklas/LEDDisplay/blob/master/Font8x8.cpp), each character has 8x8 pixels. 
 
-Your code could look like this one (plus initialization stuff from "Setting things up"):
+Your code could look like this one (plus initialization stuff from [Setting things up](#setting-things-up)):
 
 ``` cpp
 StaticText8x8 *sta1;
@@ -346,5 +346,3 @@ void loop() {
   disp->flush();
 }
 ```
-
-
