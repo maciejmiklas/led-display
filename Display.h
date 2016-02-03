@@ -78,6 +78,37 @@ public:
 	Display(kit_t xKits, kit_t yKits, ss_t **ss);
 	~Display();
 
+	/**
+	 * It allows you to paint a bitmap on given coordinates with limited width and height. So you can for example
+	 * paint a bitmap on (3,4) that has 25x3 pixels. It might be larger than a actual display size - in this case
+	 * it will get trimmed.
+	 *
+	 * This is obvious and simple, but there is one catch - you have to provide right data. This is 2D array, where
+	 * first dimension indicates vertical and second horizontal position on the display. Technically speaking
+	 * data is flat array of pointers and each pointer points to array that represents one horizontal line on the
+	 * display.
+	 *
+	 * Moving over first dimension of data traverses over lines of the display. The second dimension of data represents
+	 * horizontal pixels within single line, where each byte represents 8 pixels. Since our display consist of simple
+	 * LEDs they can be either in on or off state, so each pixel is not being represented by one byte, but by one bit.
+	 * In order to cover 16 pixels in horizontal position we need two bytes, 24 pixels requires 3 bytes, and so on.
+	 *
+	 * For example to fully cover display consisting of 8x3 LED kits (one used in our examples) we would need
+	 * data[3][8]. Usually you will take array small enough to fit your bitmap and not one that will cover up whole
+	 * display.
+	 *
+	 * The paint(...) method updates internal buffer, in order to send content of this buffer to MAX chips you have to
+	 * call flush(). The idea behind is to give you possibility to display few bitmaps on the display and after that
+	 * paint the result. You can program few independent routines, that will update different part of the display
+	 * and flush all changes at once.
+	 *
+	 * Communication with MAX chips is not very fast and sending content of the whole display with every flush() is
+	 * time consuming. You might be able to speed up this process by enabling double buffering (set DEOUBLE_BUFFER in
+	 * to true). In this case flush() method will send only bytes that have changed, so you can call flush() with every
+	 * loop and do not have to worry about loosing performance. The only drawback is increased usage of RAM:
+	 * we are creating 2D array that allocates 8 bytes per each LED Kit plus few pointers that are usually required
+	 * to maintain arrays.
+	 */
 	void paint(pixel_t x, pixel_t y, pixel_t width, pixel_t height, uint8_t **data);
 
 	/** Initialized SPI and 8x8-Matrix elements. */
