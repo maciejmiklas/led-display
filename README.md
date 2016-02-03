@@ -10,11 +10,11 @@ First let's start with the controller, actually any Arduino will work, I've used
 You will need extra power supply for driving LEDs - assuming that you are going to use more than one LED Matrix.
 
 ## Driving single LED Matrix Module 
-I've used the MAX7219 and 788BS LED Matrix, this is the one with common anode. The schematic below illustrate wiring of LEDs, MAX and Arduino:
+I've used the MAX7219 and 788BS LED Matrix, this is the one with common anode. The schematic below illustrates wiring of LEDs, MAX and Arduino:
 
 <img src="/doc/fritzing/MAX7219-788BS-LEDs_schem.png" width="600px"/>
 
-This one is equivalent, but instead of single LEDs we have PIN layout for LED Module: 
+This one is equivalent, but instead of single LEDs we have PIN layout of LED Module: 
 
 <img src="/doc/fritzing/MAX7219-788BS_schem.png" width="600px"/>
 
@@ -30,7 +30,9 @@ Here is the wiring:
 
 <img src="/doc/fritzing/LED_Display_schem.png" width="600px"/>
 
-Each 3-PIN connector on schematic above symbolizes one module described in previous chapter (LED Matrix + MAX72xx), now we've connected all those modules together. All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip occupies separate Slave Select line. 
+Each 3-PIN connector on schematic above symbolizes one module described in previous chapter (LED Matrix + MAX72xx), now we've connected all those modules together. 
+
+All MAX722xx chips share common MOSI and SCK lines, MISO is not used, each chip occupies separate Slave Select line. 
 
 The position of LED Matrix on the schematic above directly corresponds to their location on the physical display that I've used for testing. Additionally each module has description indicating it's position and Select Slave line, so for example: *(2,1) SS: 35* gives us second module on third row (counting from zero) and PIN:35 on Arduino for Select Slave line.
 
@@ -121,7 +123,7 @@ void setup() {
 There is one more method worth mentioning: *log_setup()*. Whole project has quiet precise logger - so that you can see what is actually happening. By default it's disabled, in order to enable it check out its documentation: https://github.com/maciejmiklas/ArdLog
 
 ## Painting on the display
-Display consists of a few kits, but form API perspective those kits are connected together into one continuous canvas. You can place on this canvas bitmap on any position given by such coordinates:
+Display consists of a few LED Modules, but form API perspective they are connected together into one continuous canvas. You can place on this canvas bitmap on any position given by such coordinates:
 
 ```
  (0,0) -----------------------------> (x)
@@ -158,9 +160,9 @@ In this example we will display simple static bitmap with 8x8 pixels:
 
 <img src="/doc/img/dispV.jpg" width="300px"/>
 
-Here is the Arduino sketch: [SimpleBitmat](/examples/SimpleBitmat/SimpleBitmat.ino), now lest go over it:
+Here is the Arduino sketch: [SimpleBitmap](/examples/SimpleBitmap), now lest go over it:
 
-First we have to initialize display, as we have done in above in chapter [Setting things up](#setting-things-up). Next we have to create data that can hold our bitmap - it will have 3x2 bytes. This gives us up to 3 lines and 16 horizontal pixels. But the size of our bitmap is 8x8 pixels and this will be also the size of the painted rectangle. It should be as small as possible, so that you could place another bitmap right next to it. 
+First we have to initialize display, as we have done in above in chapter [Setting things up](#setting-things-up). Next we have to create data that can hold our bitmap - it will have 8x2 bytes. This gives us up to 8 lines and 16 horizontal pixels. But the size of our bitmap is 9x8 pixels (width x height) and this will be also the size of the painted rectangle. It should be as small as possible, so that you could place another bitmap right next to it. 
 
 The display will obviously only paint the rectangle given by width/height and not whole *data* array. This is normal, that data array can hold more pixels than accrual size of out bitmap, because size of data is a multiplication o 8 and bitmap not necessary.
 
@@ -184,7 +186,7 @@ void setup() {
   data[6][0] = B00011110; data[6][1] = B00000000;
   data[7][0] = B00001100; data[7][1] = B00000000;
 
-  disp->paint(27, 9, 8, 8, data);
+  disp->paint(27, 9, 9, 8, data);
 }
 
 void loop() {
@@ -206,7 +208,11 @@ Now we will display static text, actually those are going to be two independent 
 
 Here you can find Arduino sketch containing whole example: [StaticText](/examples/StaticText). 
 
-Your sketch needs setup method as we've already seen above (chapter: [Setting things up](#setting-things-up)), so we will not discus it again. In order to display text you should use *StaticText8x8*. Font is defined in: [Font8x8](https://github.com/maciejmiklas/LEDDisplay/blob/master/Font8x8.cpp), each character has 8x8 pixels. 
+Your sketch needs setup method as we've already seen above (chapter: [Setting things up](#setting-things-up)), so we will not discus it again. 
+
+In order to display text you should use *StaticText8x8*. 
+
+Font is defined in: [Font8x8](https://github.com/maciejmiklas/LEDDisplay/blob/master/Font8x8.cpp), each character has 8x8 pixels. 
 
 Your code could look like this one (plus initialization stuff from [Setting things up](#setting-things-up)):
 
@@ -293,9 +299,9 @@ This example is similar to one above, but this time we will display several scro
 
 [![](/doc/img/scrollingTextMixed_youtube.jpg)](https://youtu.be/nanXzz2FVsY)
 
-[Here is the sketch](/examples/ScrollingText). 
+[Here is the sketch](/examples/ScrollingTextMixed). 
 
-This code is similar to one with one scrolling area, but this time we have a few. We have created few instances of *ScrollingText8x8*, each one containing different text and position on the display. In order to play animation you have to call *cycle()* on each instance, but you have to call only once *flush()*. Each call on *cycle()* will update it's part of the display and flush will send changed display o MAX chips.
+This code is similar to one with one scrolling area, but this time we have a few:
 
 ``` cpp
 void setup() {
@@ -346,3 +352,4 @@ void loop() {
   disp->flush();
 }
 ```
+We have created few instances of *ScrollingText8x8*, each one containing different text and position on the display. In order to play animation you have to call *cycle()* on each instance, but you have to call only once *flush()*. Each call on *cycle()* will update it's part of the display and flush will send changed display o MAX chips.
