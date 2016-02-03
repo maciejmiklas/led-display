@@ -160,7 +160,7 @@ In this example we will display simple static bitmap with 8x8 pixels:
 
 Here is the Arduino sketch: [SimpleBitmat](/examples/SimpleBitmat/SimpleBitmat.ino), now lest go over it:
 
-First we have to initialize display, as we have done in above in chapter "Setting things up". Next we have to create data that can hold our bitmap - it will have 3x2 bytes. This gives us up to 3 lines and 16 horizontal pixels. But the size of our bitmap is 8x8 pixels and this will be also the size of the painted rectangle. It should be as small as possible, so that you could place another bitmap right next to it. 
+First we have to initialize display, as we have done in above in chapter [Setting things up](#setting-things-up). Next we have to create data that can hold our bitmap - it will have 3x2 bytes. This gives us up to 3 lines and 16 horizontal pixels. But the size of our bitmap is 8x8 pixels and this will be also the size of the painted rectangle. It should be as small as possible, so that you could place another bitmap right next to it. 
 
 The display will obviously only paint the rectangle given by width/height and not whole *data* array. This is normal, that data array can hold more pixels than accrual size of out bitmap, because size of data is a multiplication o 8 and bitmap not necessary.
 
