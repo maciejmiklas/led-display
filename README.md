@@ -288,7 +288,7 @@ The initialization of the display is the same as in examples above, so it's omit
 
 In order to display scrolling text we are using *ScrollingText8x8*. In *setup()* we are creating instance of this class and calling method *scroll(...)*. This part only initializes scrolling, but does not play the animation itself. In order to play the animation you have to call *cycle()* and *flush()* in main loop and you must not have any additional delays there, otherwise you might get jagged animation.
 
-During creation of *ScrollingText8x8* we have provided speed of animation - actually it's a delay of 50ms per frame. Now calling *cycle()* in main loop will produce frames of animation according to provided delay. When the times comes the method *cycle()* will update display and finally method *flush()* will send updated content to MAX chips.
+During creation of *ScrollingText8x8* we have provided speed of animation - actually it's a delay of 50ms per frame. Now calling *cycle()* in main loop will produce frames of animation according to provided delay. When the time comes the method *cycle()* will update display and finally method *flush()* will send updated content to MAX chips.
 
 The whole implementation of *ScrollingText8x8* is non blocking and it consumes CPU only when there is something to be done. Internally it's using simple State Machine.
 
