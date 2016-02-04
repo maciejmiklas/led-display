@@ -152,7 +152,7 @@ Communication with MAX chips is not very fast and sending content of the whole d
 2D arrays in this project have reduced memory footprint, because in order to create dynamic 2D array, we are creating actually 2 arrays with calculated offset (see: *alloc2DArray8(....)* in *Util.h*).
 
 # Examples
-# Requires Libs
+## Requires Libs
 Examples are using *ArdLog*, so you have to import this lib into Arduino IDE. Here are instructions: https://github.com/maciejmiklas/ArdLog
 
 ## Simple Bitmap
