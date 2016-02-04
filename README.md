@@ -141,7 +141,7 @@ The paint method has following syntax: *paint(pixel_t x, pixel_t y, pixel_t widt
 
 This is obvious and simple, but there is one catch - you have to provide right *data*. This is 2D array, where first dimension indicates vertical and second  horizontal position on the display. Technically speaking *data* is flat array of pointers and each pointer points to array that represents one horizontal line on the display.
 
-Moving over first dimension of *data* traverses over lines of the display. The second dimension of *data* represents horizontal pixels within single line, where each byte represents 8 pixels. Since our display consist of simple LEDs they can be either in on or off state, so each pixel is not being represented by one byte, but by one bit. In order to cover 16 pixels in horizontal position we need two bytes, 24 pixels requires 3 bytes, and so on.
+Moving over first dimension of *data* traverses over lines of the display. The second dimension of *data* represents horizontal pixels within single line, where each byte represents 8 pixels. Since our display consist of simple LEDs they can be either in on or off state, so each pixel is not being represented by one byte, but by one bit. In order to cover 16 pixels in horizontal position we need two bytes, 24 pixels require 3 bytes, and so on.
 
 For example to fully cover display consisting of 8x3 LED kits (one used in our examples) we would need *data[3][8]*. Usually you will take array small enough to fit your bitmap and not one that will cover up whole display.
 
