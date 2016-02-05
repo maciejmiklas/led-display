@@ -352,4 +352,4 @@ void loop() {
   disp->flush();
 }
 ```
-We have created few instances of *ScrollingText8x8*, each one containing different text and position on the display. In order to play animation you have to call *cycle()* on each instance, but you have to call only once *flush()*. Each call on *cycle()* will update it's part of the display and flush will send changed display o MAX chips.
+We have created few instances of *ScrollingText8x8*, each one containing different text and position on the display. In order to play animation you have to call *cycle()* on each instance, but you have to call only once *flush()*. Each call on *cycle()* will update it's part of the display and flush will send changed display to MAX chips.
