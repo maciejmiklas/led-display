@@ -17,10 +17,10 @@
  #ifndef LD_Display_h
 #define LD_Display_h
 
+#include <DispUtil.h>
 #include "Arduino.h"
 #include "SPI.h"
 #include "ArdLog.h"
-#include "Util.h"
 #include "Canvas.h"
 
 #define SIMULATE_DI false

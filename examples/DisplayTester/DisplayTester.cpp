@@ -1,4 +1,4 @@
-#include "LEDDisplayTester.h"
+#include "DisplayTester.h"
 #include "SPI.h"
 
 // max7219 registers

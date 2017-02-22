@@ -14,15 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- #include "Util.h"
+ #include <DispUtil.h>
 
 static uint32_t cycleMs = 0;
 
-void util_setup() {
-	util_cycle();
+void dutil_setup() {
+	dutil_cycle();
 }
 
-void util_cycle() {
+void dutil_cycle() {
 	cycleMs = millis();
 }
 

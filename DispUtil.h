@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- #ifndef ARD_UTIL_H
-#define ARD_UTIL_H
+#ifndef ARD_DISP_UTIL_H
+#define ARD_DISP_UTIL_H
 
 #include "Arduino.h"
 
-void util_setup();
-void util_cycle();
+void dutil_setup();
+void dutil_cycle();
 
 uint32_t ms();
 
@@ -31,9 +31,9 @@ inline void sort_8t(uint8_t arr[], uint8_t size) {
 	for (i = 1; i < size; i++) {
 		temp = arr[i];
 		j = i - 1;
-		while ((temp < arr[j]) && (j >= 0)) {
+		while (temp < arr[j] && j != 0) {
 			arr[j + 1] = arr[j];
-			j = j - 1;
+			j--;
 		}
 		arr[j + 1] = temp;
 	}
@@ -142,6 +142,19 @@ inline uint8_t maskR(uint8_t bits) {
 	return bv;
 }
 
+inline uint8_t append(char* toBuf, uint8_t toOffset, uint8_t toSize, char* fromBuf) {
+	uint8_t fromIdx = 0;
+	uint8_t toIdx = toOffset;
+	for (; toIdx < toSize; toIdx++) {
+		char ch = fromBuf[fromIdx++];
+		if (ch == '\0') {
+			break;
+		}
+		toBuf[toIdx] = ch;
+	}
+	return toIdx;
+}
+
 inline boolean checkBit(uint8_t byte, uint8_t bit) {
 	return byte & (1 << bit);
 }
@@ -160,9 +173,7 @@ inline void fbyte(uint8_t byte, char *buf) {
 	buf[8] = '\0';
 }
 
-/**
- * Creates 2D array using continuous memory space.
- */
+/** Creates 2D array using continuous memory space. */
 inline uint8_t** alloc2DArray8(uint8_t rows, uint8_t cols) {
 	uint8_t **array = (uint8_t **) malloc(sizeof(uint8_t *) * rows);
 	array[0] = (uint8_t*) malloc(sizeof(uint8_t) * rows * cols);
@@ -182,6 +193,12 @@ inline uint8_t** init2DArray8(uint8_t rows, uint8_t cols) {
 inline void delete2DArray8(uint8_t **array) {
 	free(array[0]);
 	free(array);
+}
+
+inline void cleanCharArray(char *array, uint8_t size) {
+	for (uint8_t col = 0; col < size; col++) {
+		array[col] = ' ';
+	}
 }
 
 inline void clean2DArray8(uint8_t **array, uint8_t rowStart, uint8_t colStart, uint8_t rows, uint8_t cols) {
@@ -225,4 +242,4 @@ inline void shiftL(uint8_t array[], uint8_t size) {
 	}
 }
 
-#endif /* ARD_UTIL_H */
+#endif /* ARD_DISP_UTIL_H */
