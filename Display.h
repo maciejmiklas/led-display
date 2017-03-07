@@ -137,6 +137,10 @@ public:
 
 	/** Sends the content of screen buffer to MAX chips and repaints whole display. */
 	void flush();
+
+	/** #brightness is between 1 (low) and 15 (high) */
+	void brightness(uint8_t brightness);
+
 private:
 
 	/** Horizontal amount of 8x8-Matrices, known as Kits */

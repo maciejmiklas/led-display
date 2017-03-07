@@ -365,6 +365,14 @@ inline uint8_t Display::shifted_lastKit1Byte(KitData &kd, uint8_t **data) {
 	return newDispByte;
 }
 
+void Display::brightness(uint8_t brightness) {
+	for (uint8_t ssY = 0; ssY < yKits; ssY++) {
+		for (uint8_t ssX = 0; ssX < xKits; ssX++) {
+			send(ss[ssY][ssX], REG_INTENSITY, brightness);
+		}
+	}
+}
+
 void Display::setupMax(ss_t ss) {
 #if LOG
 	log(F("Configuring MAX7219 on SS: %d"), ss);
