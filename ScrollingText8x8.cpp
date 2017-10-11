@@ -34,8 +34,8 @@ void ScrollingText8x8::paint() {
 }
 
 void ScrollingText8x8::scroll(pixel_t x, pixel_t y, mode_t mode, char const *text) {
-#if LOG
-	log(F("Scroll text on (%d,%d)"), x, y);
+#if LOG_D
+	log(F("STX  on (%d,%d)"), x, y);
 #endif
 
 	this->x = x;
@@ -68,8 +68,8 @@ void ScrollingText8x8::MainState::init() {
 
 uint8_t ScrollingText8x8::MainState::execute() {
 	char nextChar = sta->text[charsIdx++];
-#if LOG
-	log(F("Next char: %d on %d"), nextChar, charsIdx);
+#if LOG_D
+	log(F("STX NC %d on %d"), nextChar, charsIdx);
 #endif
 
 	if (nextChar == '\0') {
@@ -109,8 +109,8 @@ uint8_t ScrollingText8x8::CharState::execute() {
 	for (uint8_t hIdx = 0; hIdx < FONT8_HEIGHT; hIdx++) {
 		shiftL(sta->data[hIdx], sta->xDataSize);
 	}
-#if LOG
-	log(F("Display shift: %d"), wIdx);
+#if LOG_D
+	log(F("STX shift: %d"), wIdx);
 #endif
 	sta->paint();
 
@@ -157,8 +157,8 @@ uint8_t ScrollingText8x8::EndState::execute() {
 	for (uint8_t hIdx = 0; hIdx < FONT8_WIDTH; hIdx++) {
 		shiftL(sta->data[hIdx], sta->xDataSize);
 	}
-#if LOG
-	log(F("EndState charsIdx: %d"), charsIdx);
+#if LOG_D
+	log(F("STX ES %d"), charsIdx);
 #endif
 	sta->paint();
 

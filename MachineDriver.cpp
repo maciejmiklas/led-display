@@ -37,8 +37,8 @@ void MachineDriver::changeState(uint8_t state) {
 		return;
 	}
 
-#if LOG
-	log(F("Change state to %d of %d"), state, statesCnt);
+#if LOG_D
+	log(F("MD sate to %d of %d"), state, statesCnt);
 #endif
 
 	boolean init = true;
@@ -67,8 +67,8 @@ void MachineDriver::changeState(uint8_t state) {
 }
 
 void MachineDriver::reset() {
-#if LOG
-	log(F("Reseting Machine Driver"));
+#if LOG_D
+	log(F("MD RST"));
 #endif
 
 	for (uint8_t sIdx = 0; sIdx < statesCnt; sIdx++) {

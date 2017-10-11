@@ -35,8 +35,8 @@ void AnimatedText8x8::cycle() {
 	lastFrameTimeMs = time;
 #endif
 
-#if LOG
-	log(F("Next frame(%d)"), tid);
+#if LOG_D
+	log(F("AT FR %d"), tid);
 #endif
 
 	driver->execute();

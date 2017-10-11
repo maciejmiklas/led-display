@@ -18,7 +18,7 @@
 #define ARD_DISP_UTIL_H
 
 #include "Arduino.h"
-
+#include "ArdLog.h"
 void dutil_setup();
 void dutil_cycle();
 

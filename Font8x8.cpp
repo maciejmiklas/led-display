@@ -149,14 +149,14 @@ PROGMEM const uint8_t FONT8[FONT8_SIZE][FONT8_HEIGHT] = {
 };
 
 void font8x8_copy(uint8_t **data, uint8_t dataIdx, uint8_t fontIdx) {
-#if LOG
-	log(F("Copy font: %d"), fontIdx);
+#if LOG_D
+	log(F("FN %d"), fontIdx);
 #endif
 
 	for (uint8_t row = 0; row < FONT8_HEIGHT; row++) {
 		data[row][dataIdx] = pgm_read_byte(&FONT8[fontIdx][row]);
-#if LOG
-		log(F(" -- data[%d][%d] = 0x%02x"), row, dataIdx, data[row][dataIdx]);
+#if LOG_D
+		log(F("-- [%d][%d]=0x%02x"), row, dataIdx, data[row][dataIdx]);
 #endif
 	}
 }
