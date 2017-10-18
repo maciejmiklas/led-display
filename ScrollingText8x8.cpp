@@ -14,11 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- #include "ScrollingText8x8.h"
+#include "ScrollingText8x8.h"
 
 ScrollingText8x8::ScrollingText8x8(Canvas *canvas, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id) :
 		AnimatedText8x8(canvas, boxWidth, animationDelayMs, id), x(0), y(0), text(NULL), mode(SINGLE_PASS), mainState(
-				this), charState(this), endState(this), __machineDriver(3, &mainState, &charState, &endState) {
+				this), charState(this), endState(this), listener(NULL), __machineDriver(3, &mainState, &charState,
+				&endState) {
 }
 
 ScrollingText8x8::~ScrollingText8x8() {
@@ -27,6 +28,10 @@ ScrollingText8x8::~ScrollingText8x8() {
 
 MachineDriver* ScrollingText8x8::createDriver() {
 	return &__machineDriver;
+}
+
+void ScrollingText8x8::setListener(Listener *listener) {
+	this->listener = listener;
 }
 
 void ScrollingText8x8::paint() {
@@ -74,6 +79,9 @@ uint8_t ScrollingText8x8::MainState::execute() {
 
 	if (nextChar == '\0') {
 		if (sta->mode == CONTINOUS_LOOP) {
+			if (sta->listener != NULL) {
+				sta->listener->onScrollEnd();
+			}
 			return StateMachine::STATE_RESET;
 		}
 		return ScrollingText8x8::STATE_END;
@@ -147,6 +155,9 @@ uint8_t ScrollingText8x8::EndState::execute() {
 	if (charsIdx == sta->boxWidth + FONT8_WIDTH) {
 		uint8_t state;
 		if (sta->mode == LOOP) {
+			if (sta->listener != NULL) {
+				sta->listener->onScrollEnd();
+			}
 			state = StateMachine::STATE_RESET;
 		} else {
 			state = StateMachine::STATE_NOOP;
@@ -165,3 +176,11 @@ uint8_t ScrollingText8x8::EndState::execute() {
 	return StateMachine::STATE_NOCHANGE;
 }
 
+// ################ ScrollingTextListener ################
+ScrollingText8x8::Listener::Listener() {
+
+}
+
+ScrollingText8x8::Listener::~Listener() {
+
+}

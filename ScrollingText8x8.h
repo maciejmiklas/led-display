@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- #ifndef SCROLLING8x8TEXTAREA_H_
+#ifndef SCROLLING8x8TEXTAREA_H_
 #define SCROLLING8x8TEXTAREA_H_
 
 #include "AnimatedText8x8.h"
@@ -31,6 +31,13 @@
 class ScrollingText8x8: public AnimatedText8x8 {
 
 public:
+	class Listener {
+	public:
+		/** Method will be called when text scrolling has anded and before starting it over again. */
+		virtual void onScrollEnd() = 0;
+		virtual ~Listener();
+		Listener();
+	};
 	enum mode_t {
 
 		/** Scroll text once and stop. */
@@ -42,9 +49,9 @@ public:
 		/** Scroll text in loop without break between start and end. */
 		CONTINOUS_LOOP
 	};
-
 	ScrollingText8x8(Canvas *canvas, pixel_t boxWidth, uint16_t animationDelayMs, uint8_t id);
 	void scroll(pixel_t x, pixel_t y, mode_t mode, char const *text);
+	void setListener(Listener *listener);
 	virtual ~ScrollingText8x8();
 
 protected:
@@ -114,9 +121,11 @@ private:
 	MainState mainState;
 	CharState charState;
 	EndState endState;
+	Listener *listener;
 
 	/** Variable should be never used due to OO design. We just have to keep references to driver to avoid GC. */
 	MachineDriver __machineDriver;
+
 };
 
 #endif /* SCROLLING8x8TEXTAREA_H_ */
