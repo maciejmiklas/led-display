@@ -17,7 +17,7 @@
  #ifndef STATIC8x8TEXTAREA_H_
 #define STATIC8x8TEXTAREA_H_
 
-#include <DispUtil.h>
+#include "DispUtil.h"
 #include "Canvas.h"
 #include "Font8x8.h"
 

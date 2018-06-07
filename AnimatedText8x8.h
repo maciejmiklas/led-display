@@ -17,7 +17,7 @@
 #ifndef ANIMATEDTEXTAREA_H_
 #define ANIMATEDTEXTAREA_H_
 
-#include <DispUtil.h>
+#include "DispUtil.h"
 #include "MachineDriver.h"
 #include "Font8x8.h"
 #include "Canvas.h"

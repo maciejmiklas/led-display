@@ -51,7 +51,7 @@ ss_t** createSS() {
 
 
 void setup() {
-  util_setup();
+  dutil_setup();
   log_setup();
   
   ss = createSS();
@@ -67,7 +67,7 @@ void setup() {
 }
 
 void loop() {
-  util_cycle();
+  dutil_cycle();
   log_cycle();
   disp->flush();
   

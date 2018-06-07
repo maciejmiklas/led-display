@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- #include <DispUtil.h>
+ #include "DispUtil.h"
 
 static uint32_t cycleMs = 0;
 
