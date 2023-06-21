@@ -5,7 +5,7 @@ I've tested the whole idea on display, which consist of 8 LED Modules in horizon
 # Hardware
 Fritzing schematics are here: [/doc/fritzing](doc/fritzing)
 
-First, let's start with the controller. Any Arduino will work. I've used Mega due to a large number of digital output pins. You could also use Nano with a shift register and alter a way of addressing Select Slave lines in *Display::send(...)*.
+First, let's start with the controller. Any Arduino will work. I've used Mega due to the large number of digital output pins. You could also use Nano with a shift register and alter a way of addressing Select Slave lines in *Display::send(...)*.
 
 You will need an extra power supply for driving LEDs, assuming you will use more than one LED Matrix.
 
@@ -137,23 +137,23 @@ The display consists of a few LED Modules, but from an API perspective, they are
       v (y)
 ```
 
-The paint method has following syntax: *paint(pixel_t x, pixel_t y, pixel_t width, pixel_t height, uint8_t data)*. It allows you to paint a bitmap on given coordinates with limited width and height. So you can, for example, paint a bitmap on (3,4) that has 25x3 pixels. It might be larger than the actual display size - in this case it will get trimmed.
+The paint method has following syntax: *paint(pixel_t x, pixel_t y, pixel_t width, pixel_t height, uint8_t data)*. It allows you to paint a bitmap on given coordinates with limited width and height. So you can, for example, paint a bitmap on (3,4) that has 25x3 pixels. It might be larger than the actual display size - in this case, it will get trimmed.
 
-It is evident and straightforward, but there is one catch - you have to provide the correct *data*. It is a 2D array, where the first dimension indicates a vertical and second horizontal position on the display. Technically speaking *data* is a flat array of pointers, and each pointer points to an array representing one horizontal line on the display.
+It is evident and straightforward, but there is one catch - you must provide the correct *data*. It is a 2D array, where the first dimension indicates a vertical and second horizontal position on the display. Technically speaking *data* is a flat array of pointers, and each pointer points to an array representing one horizontal line on the display.
 
 Moving over the first dimension of *data* traverses over lines of the display. The second dimension of *data* represents horizontal pixels within a single line, where each byte represents 8 pixels. Since our display consists of simple LEDs, they can be either in an on or off state, so each pixel is not defined by one byte but by one bit. To cover 16 pixels in a horizontal position, we need two bytes, 24 pixels require 3 bytes, and so on.
 
 For example, to fully cover a display consisting of 8x3 LED kits (one used in our examples) we would need *data[3][8]*. Usually, you will take an array small enough to fit your bitmap rather than one that will cover up the whole display.
 
-The *paint(...)* method updates the internal buffer. To send this buffer's content to MAX chips, you have to call *flush()*. The idea is to allow you to display a few bitmaps on display and then paint the result. You can program a few independent routines that will update different display parts and flush all changes at once.
+The *paint(...)* method updates the internal buffer. To send this buffer's content to MAX chips, call *flush()*. The idea is to allow you to display a few bitmaps on display and then paint the result. You can program a few independent routines to update different display parts and flush all changes simultaneously.
 
-Communication with MAX chips is slow, and sending the content of the entire display with every *flush()* is time-consuming. You might be able to speed up this process by enabling double buffering (set *DEOUBLE_BUFFER* in *Display.h* to true). In this case *flush()* method will send only bytes that have changed, so you can call *flush()* with every loop and do not have to worry about losing performance. The only drawback is an increased usage of RAM: we are creating a 2D array that allocates 8 bytes per each LED Kit plus a few pointers that are usually required to maintain arrays. 
+Communication with MAX chips is slow, and sending the content of the entire display with every *flush()* is time-consuming. You can speed up this process by enabling double buffering (set *DEOUBLE_BUFFER* in *Display.h* to true). In this case *flush()* method will send only bytes that have changed so that you can call *flush()* with every loop and do not have to worry about losing performance. The only drawback is increased RAM usage: we are creating a 2D array that allocates 8 bytes per each LED Kit plus a few pointers that are usually required to maintain arrays. 
 
-2D arrays in this project have reduced memory footprint because to create a dynamic 2D array, we are creating two arrays with calculated offset (see: *alloc2DArray8(....)* in *Util.h*).
+2D arrays in this project have reduced memory footprint because to create a dynamic 2D array, we are allocating a single continuous array with an offset (see: *alloc2DArray8(....)* in *DisplayUtil.h*).
 
 # Examples
 ## Requires Libs
-Examples are using *ArdLog*, so you have to import this lib into Arduino IDE. Here are the instructions: https://github.com/maciejmiklas/ArdLog
+Examples use *ArdLog*, so you must import this lib into Arduino IDE. Here are the instructions: https://github.com/maciejmiklas/ArdLog
 
 ## Simple Bitmap
 In this example, we will display a simple static bitmap with 8x8 pixels:
@@ -162,7 +162,7 @@ In this example, we will display a simple static bitmap with 8x8 pixels:
 
 Here is the Arduino sketch: [SimpleBitmap](/examples/SimpleBitmap), now lest go over it:
 
-First, we have to initialize the display, as we have done in the above chapter [Setting things up](#setting-things-up). Next, we have to create data that can hold our bitmap - it will have 8x2 bytes. It gives us up to 8 lines and 16 horizontal pixels. But the size of our bitmap is 9x8 pixels (width x height), which will also be the size of the painted rectangle. It should be as small as possible so that you can place another bitmap next to it. 
+First, we have to initialize the display, as in the above chapter [Setting things up](#setting-things-up). Next, we have to create data that can hold our bitmap - it will have 8x2 bytes. It gives us up to 8 lines and 16 horizontal pixels. But the size of our bitmap is 9x8 pixels (width x height), which will also be the size of the painted rectangle. It should be as small as possible so that you can place another bitmap next to it. 
 
 The display will only paint the rectangle given by width/height and not the whole *data* array. 
 ``` cpp
@@ -192,8 +192,8 @@ void loop() {
   util_cycle();
   log_cycle();
   
-  // Paint method updates only internal buffer, in order to send data to 
-  // MAX chips you have to flush display. 
+  // Paint method updates only the internal buffer, to send data to 
+  // MAX chips you have to flush the display. 
   disp->flush();
   
   delay(100000);
@@ -201,7 +201,7 @@ void loop() {
 ```
 
 ## Static Text
-Now we will display static text. Actually those are going to be two independent lines.
+Now we will display static text. Actually, those are going to be two independent lines.
 
 <img src="/doc/img/dispStatic.jpg" width="300px"/>
 
@@ -285,16 +285,16 @@ void loop() {
 
 The initialization of the display is the same as in the examples above, so it's omitted here.
 
-To display scrolling text, we are using *ScrollingText8x8*. In *setup()* we are creating an instance of this class and calling method *scroll(...)*. This part only initializes scrolling but does not play the animation itself. To play the animation, you have to call *cycle()* and *flush()* in the main loop, and you must not have any additional delays there; otherwise, you might get jagged animation.
+To display scrolling text, we are using *ScrollingText8x8*. In *setup()*, we are creating an instance of this class and calling method *scroll(...)*. This part only initializes scrolling but does not play the animation itself. To play the animation, you have to call *cycle()* and *flush()* in the main loop, and you must not have any additional delays there; otherwise, you might get jagged animation.
 
-During the creation of *ScrollingText8x8* we provided the animation's speed - actually, it's a delay of 50ms per frame. Now calling *cycle()* in the main loop will produce frames of animation according to provided delay. When the time comes, method *cycle()* will update the display, and method *flush()* will send updated content to MAX chips.
+While creating *ScrollingText8x8*, we provided the animation's speed - actually, it's a delay of 50ms per frame. Now calling *cycle()* in the main loop will produce animation frames according to provided delay. When the time comes, method *cycle()* will update the display, and method *flush()* will send updated content to MAX chips.
 
 The full implementation of *ScrollingText8x8* is nonblocking and consumes the CPU only when something is to be done. Internally it uses using simple State Machine.
 
-One last thing: **you have to keep text used for animation in global variable** to avoid garbage collection. It's not being copied in *scroll()* to prevent memory fragmentation.
+One last thing: **You must keep text used for animation in global variable** to avoid garbage collection. It's not being copied in *scroll()* to prevent memory fragmentation.
 
 ## Scrolling Text Mixed
-This example is similar to the one above, but we will display several scrolling areas this time. To view the animation on youtube, click on the image.
+This example is similar to the one above, but we will display several scrolling areas now. To view the animation on youtube, click on the image.
 
 [![](/doc/img/scrollingTextMixed_youtube.jpg)](https://youtu.be/nanXzz2FVsY)
 
